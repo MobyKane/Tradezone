@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}TradeZone - Vendor Upload{% endblock %}
+
+{% block content %}
+<div class="mb-lg">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Add New Listing</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-2">Provide detailed information to make your product stand out.</p>
+</div>
+<form class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<div class="lg:col-span-8 space-y-gutter">
+<div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
+<h2 class="font-title-lg text-title-lg text-on-surface mb-md">Product Media</h2>
+<div class="border-2 border-dashed border-outline-variant hover:border-primary transition-colors rounded-xl p-xl flex flex-col items-center justify-center text-center cursor-pointer bg-surface-container-low" id="dropzone">
+<div class="w-16 h-16 bg-primary-fixed rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 0;">cloud_upload</span>
+</div>
+<p class="font-button text-button text-on-surface mb-1">Click to upload or drag and drop</p>
+<p class="font-label-md text-label-md text-outline">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+</div>
+<div class="grid grid-cols-4 gap-sm mt-md">
+<div class="aspect-square rounded-lg bg-surface-variant relative overflow-hidden group">
+<img class="w-full h-full object-cover" data-alt="A close up, high quality studio shot of a modern electronic gadget on a clean white background, vibrant lighting, professional commercial photography style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyT8K_2dv472z51WIClQvfQHzY5XAUx2uFCOkks9I2dpfn7_Cw2iTFhLBjN4nxXWnm6SVaq_zBqXkUQQ8ORncHmHTriEWWJSQNiaghTfDbLgruWfqJl00SHEq5HNUJKm6TQipCCxeP5cNBz27e7_xL6RqJsE4NLy0eOAk5Xea-3Kd-p4it63da3HNHYhi-5recJjJ6QdQRXHK6cgvcvUNjRyr5w1nPUw7d1uNU7HtBVBnX0a8OcxQ1HQ"/>
+<button class="absolute top-1 right-1 bg-surface/80 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" type="button">
+<span class="material-symbols-outlined text-error text-sm">close</span>
+</button>
+</div>
+<div class="aspect-square rounded-lg border border-dashed border-outline-variant flex items-center justify-center text-outline-variant hover:text-primary hover:border-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined">add</span>
+</div>
+</div>
+</div>
+<div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
+<h2 class="font-title-lg text-title-lg text-on-surface mb-md">Basic Information</h2>
+<div class="space-y-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="product_name">Product Title <span class="text-error">*</span></label>
+<input class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="product_name" placeholder="e.g., Wireless Noise-Cancelling Headphones" type="text"/>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="description">Description <span class="text-error">*</span></label>
+<textarea class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="description" placeholder="Describe your product's key features, benefits, and specifications..." rows="5"></textarea>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4 space-y-gutter">
+<div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
+<h2 class="font-title-lg text-title-lg text-on-surface mb-md">Pricing</h2>
+<div class="space-y-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="price">Base Price <span class="text-error">*</span></label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-4 text-on-surface-variant font-bold">$</span>
+<input class="w-full rounded-lg border border-outline-variant bg-surface pl-8 pr-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-lg text-on-surface font-bold" id="price" placeholder="0.00" type="number"/>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface-variant">Discounted Price</label>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-9 h-5 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
+<h2 class="font-title-lg text-title-lg text-on-surface mb-md">Organization</h2>
+<div class="space-y-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="category">Category <span class="text-error">*</span></label>
+<div class="relative">
+<select class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 appearance-none focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface" id="category">
+<option disabled="" selected="" value="">Select a category</option>
+<option value="electronics">Electronics & Gadgets</option>
+<option value="fashion">Fashion & Apparel</option>
+<option value="home">Home & Living</option>
+</select>
+<span class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">expand_more</span>
+</span>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="tags">Tags</label>
+<input class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="tags" placeholder="Press enter to add tags" type="text"/>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container-high rounded-full font-label-md text-label-md text-on-surface">
+Tech <button type="button"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</span>
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container-high rounded-full font-label-md text-label-md text-on-surface">
+New Arrival <button type="button"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-sm mt-lg">
+<button class="w-full bg-primary text-on-primary font-button text-button py-3 px-6 rounded-lg hover:bg-surface-tint shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all flex items-center justify-center gap-2" type="submit">
+<span class="material-symbols-outlined text-[18px]">publish</span> Publish Listing
+</button>
+<button class="w-full border-2 border-outline-variant text-on-surface-variant font-button text-button py-3 px-6 rounded-lg hover:border-primary hover:text-primary transition-all" type="button">
+Save as Draft
+</button>
+</div>
+</div>
+</form>
+{% endblock %}
