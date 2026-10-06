@@ -71,3 +71,10 @@ coverage.xml
 *.orig
 *.rej
 *.sublime-workspace
+
+.env
+db.sqlite3
+db.sqlite3.backup*
+db_backup*
+media/
+staticfiles/

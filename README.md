@@ -2,6 +2,22 @@
 
 TradeZone is a multi-vendor e-commerce platform designed to connect vendors and customers in a seamless and user-friendly environment. The platform allows vendors to list their products, manage their stores, and process orders, while customers can browse, search, and purchase products with ease. TradeZone is built using Django, styled with Tailwind CSS, and integrates Paystack for secure payment processing.
 
+## Environment variables
+
+Set the following values in a local `.env` file for development or in your deployment environment:
+
+- `SECRET_KEY`
+- `DEBUG`
+- `ALLOWED_HOSTS`
+- `DB_ENGINE`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_HOST`
+- `DB_PORT`
+- `PAYSTACK_PUBLIC_KEY`
+- `PAYSTACK_SECRET_KEY`
+
 ---
 
 ## Project Overview

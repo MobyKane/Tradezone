@@ -1,136 +1,107 @@
 {% extends 'base.html' %}
+{% load money %}
 
 {% block title %}Checkout - TradeZone{% endblock %}
 
 {% block content %}
-<div class="mb-lg">
-<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Checkout</h1>
-</div>
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-<div class="lg:col-span-8 space-y-lg">
-<section class="rounded-xl p-md md:p-lg" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
-<div class="flex items-center justify-between mb-md">
-<h2 class="font-title-lg text-title-lg flex items-center gap-sm text-on-surface">
-<span class="material-symbols-outlined text-primary">local_shipping</span> Shipping Address
-</h2>
-<button class="font-button text-button text-primary hover:text-primary-container transition-colors">Edit</button>
-</div>
-<div class="border border-outline-variant rounded-lg p-md bg-surface flex items-start gap-md cursor-pointer hover:border-primary transition-colors">
-<div class="mt-1">
-<input checked="" class="w-4 h-4 text-primary bg-surface-variant border-outline focus:ring-primary" name="address" type="radio"/>
-</div>
-<div>
-<p class="font-body-lg text-body-lg font-semibold text-on-surface">Jane Doe</p>
-<p class="font-body-md text-body-md text-on-surface-variant mt-xs">123 Commerce St, Suite 400</p>
-<p class="font-body-md text-body-md text-on-surface-variant">San Francisco, CA 94105</p>
-<p class="font-body-md text-body-md text-on-surface-variant mt-xs">United States</p>
-</div>
-</div>
-</section>
-<section class="rounded-xl p-md md:p-lg" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
-<h2 class="font-title-lg text-title-lg flex items-center gap-sm text-on-surface mb-md">
-<span class="material-symbols-outlined text-primary">payment</span> Payment Method
-</h2>
-<div class="space-y-sm">
-<label class="border border-primary rounded-lg p-md bg-primary-fixed flex items-center justify-between cursor-pointer transition-colors">
-<div class="flex items-center gap-md">
-<input checked="" class="w-4 h-4 text-primary bg-surface-variant border-outline focus:ring-primary" name="payment" type="radio"/>
-<span class="font-body-lg text-body-lg text-on-surface flex items-center gap-sm">
-<span class="material-symbols-outlined text-on-surface-variant">credit_card</span> Credit Card
-</span>
-</div>
-<span class="font-label-md text-label-md text-on-surface-variant">Ending in 4242</span>
-</label>
-<div class="pl-xl pr-md py-sm">
-<div class="grid grid-cols-2 gap-md">
-<div class="col-span-2 border border-outline-variant rounded-lg bg-surface px-sm py-xs flex flex-col">
-<label class="font-label-md text-label-md text-on-surface-variant">Card Number</label>
-<input class="bg-transparent border-none p-0 focus:ring-0 font-body-md text-body-md text-on-surface w-full" placeholder="**** **** **** 4242" type="text"/>
-</div>
-<div class="border border-outline-variant rounded-lg bg-surface px-sm py-xs flex flex-col">
-<label class="font-label-md text-label-md text-on-surface-variant">Expiry Date</label>
-<input class="bg-transparent border-none p-0 focus:ring-0 font-body-md text-body-md text-on-surface w-full" placeholder="MM/YY" type="text"/>
-</div>
-<div class="border border-outline-variant rounded-lg bg-surface px-sm py-xs flex flex-col">
-<label class="font-label-md text-label-md text-on-surface-variant">CVC</label>
-<input class="bg-transparent border-none p-0 focus:ring-0 font-body-md text-body-md text-on-surface w-full" placeholder="123" type="text"/>
-</div>
-</div>
-</div>
-<label class="border border-outline-variant rounded-lg p-md bg-surface flex items-center gap-md cursor-pointer hover:border-primary transition-colors mt-sm">
-<input class="w-4 h-4 text-primary bg-surface-variant border-outline focus:ring-primary" name="payment" type="radio"/>
-<span class="font-body-lg text-body-lg text-on-surface flex items-center gap-sm">
-<span class="material-symbols-outlined text-on-surface-variant">account_balance_wallet</span> Digital Wallet
-</span>
-</label>
-</div>
-</section>
-<section class="rounded-xl p-md md:p-lg" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
-<h2 class="font-title-lg text-title-lg flex items-center gap-sm text-on-surface mb-md">
-<span class="material-symbols-outlined text-primary">shopping_bag</span> Order Items
-</h2>
-<div class="space-y-md">
-<div class="flex gap-md pb-md border-b border-outline-variant">
-<div class="w-20 h-20 bg-surface-variant rounded-lg overflow-hidden shrink-0">
-<img class="w-full h-full object-cover" data-alt="A sleek, modern wireless headphone resting on a clean white studio backdrop. The lighting is soft and diffused, highlighting the metallic accents and matte black finish of the product. High contrast, professional e-commerce product photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO3lIvNfxuMIl06QNIbJX0qyn65tG3BkU7mkA_4BWwPjc0RAC3oSc4L3KEsHDEKGvl9TsuCa2xGeKXHTDlbmcLB5iOyLnN6K-UGLni8VsQvI_aoMLg-q5jSRtx1z_ox8eghCbNOeAk6L6yir7cb9PMvLS0qir0vrDhk9xluoW_-xY-0mZqcuB6lxkssvKCCQ5ni7rYUot6ES0cKPuGSCjI8-vCJBSzjfF1UAY84X0MCEgKfW_fJkJUHg"/>
-</div>
-<div class="flex-1 flex flex-col justify-between">
-<div>
-<h3 class="font-body-lg text-body-lg font-medium text-on-surface">Pro Wireless Noise-Cancelling Headphones</h3>
-<p class="font-label-md text-label-md text-on-surface-variant mt-xs">Vendor: ElectroTech Hub</p>
-</div>
-<div class="flex justify-between items-center mt-sm">
-<span class="font-body-md text-body-md text-on-surface-variant">Qty: 1</span>
-<span class="font-title-lg text-title-lg text-on-surface">$299.00</span>
-</div>
-</div>
-</div>
-<div class="flex gap-md">
-<div class="w-20 h-20 bg-surface-variant rounded-lg overflow-hidden shrink-0">
-<img class="w-full h-full object-cover" data-alt="A minimalist mechanical keyboard with rgb lighting subtly glowing from beneath the keys. Set against a light gray modern workspace desk setting. Corporate modern aesthetic, crisp focus on the keycaps." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrwrYpaEFInKhliksHm1PLqABSJEXqlutp5JTW2vafVkfshsILfb9iu8ucvbrMC6_oxtyF9X_WcS2dFyVdp9NwOPBAJrOpI7rG-DHg3bwIZnnZCznvTlwJtg-bZMryJQAgtXXQ9CLDEsr44g-zwPB--gnngewbrb0IP6e9l5OxQZcuyzPrD8rCj6I7gTsRQM63OK3T1d_rIiSCQaL2dZY3C7H7h5niP_u4OzKZvByPv67zUn79w03BLw"/>
-</div>
-<div class="flex-1 flex flex-col justify-between">
-<div>
-<h3 class="font-body-lg text-body-lg font-medium text-on-surface">Mechanical Keyboard - Tactile Switches</h3>
-<p class="font-label-md text-label-md text-on-surface-variant mt-xs">Vendor: Peripheral Masters</p>
-</div>
-<div class="flex justify-between items-center mt-sm">
-<span class="font-body-md text-body-md text-on-surface-variant">Qty: 2</span>
-<span class="font-title-lg text-title-lg text-on-surface">$258.00</span>
-</div>
-</div>
-</div>
-</div>
-</section>
-</div>
-<div class="lg:col-span-4">
-<div class="rounded-xl p-md md:p-lg sticky top-[100px]" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
-<h2 class="font-title-lg text-title-lg text-on-surface mb-md">Order Summary</h2>
-<div class="space-y-sm text-on-surface-variant font-body-md text-body-md border-b border-outline-variant pb-md mb-md">
-<div class="flex justify-between">
-<span>Subtotal (3 items)</span>
-<span class="text-on-surface font-medium">$557.00</span>
-</div>
-<div class="flex justify-between">
-<span>Shipping</span>
-<span class="text-on-surface font-medium">$12.50</span>
-</div>
-<div class="flex justify-between">
-<span>Estimated Tax</span>
-<span class="text-on-surface font-medium">$45.95</span>
-</div>
-</div>
-<div class="flex justify-between items-end mb-lg">
-<span class="font-title-lg text-title-lg text-on-surface">Total</span>
-<span class="font-headline-md text-headline-md text-primary">$615.45</span>
-</div>
-<button class="w-full bg-primary hover:bg-primary-container text-on-primary font-button text-button py-3 rounded-lg shadow-md transition-all active:scale-[0.98] flex justify-center items-center gap-sm">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span> Place Order
-</button>
-<p class="font-label-md text-label-md text-center text-on-surface-variant mt-sm">
-By placing your order, you agree to TradeZone's <a class="text-primary hover:underline" href="#">Terms of Service</a> and <a class="text-primary hover:underline" href="#">Privacy Policy</a>.
-</p>
-</div>
-</div>
-</div>
+<form method="POST" action="{% url 'checkout' %}">
+    {% csrf_token %}
+    <div class="mb-lg">
+        <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Checkout</h1>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+        <div class="lg:col-span-8 space-y-lg">
+            <!-- Shipping Information -->
+            <section class="rounded-xl p-md md:p-lg" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+                <div class="flex items-center justify-between mb-md">
+                    <h2 class="font-title-lg text-title-lg flex items-center gap-sm text-on-surface">
+                        <span class="material-symbols-outlined text-primary">local_shipping</span> Shipping &amp; Contact Details
+                    </h2>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-on-surface mb-1">Full Name</label>
+                        <input type="text" name="full_name" required value="{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}" class="w-full rounded-lg border border-outline-variant p-2.5 bg-surface text-on-surface" placeholder="John Doe"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-on-surface mb-1">Email Address</label>
+                        <input type="email" name="email" required value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}" class="w-full rounded-lg border border-outline-variant p-2.5 bg-surface text-on-surface" placeholder="john@example.com"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-on-surface mb-1">Shipping Address</label>
+                        <textarea name="address" required rows="3" class="w-full rounded-lg border border-outline-variant p-2.5 bg-surface text-on-surface" placeholder="123 Commerce St, City, Country"></textarea>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Order Items -->
+            <section class="rounded-xl p-md md:p-lg" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+                <h2 class="font-title-lg text-title-lg flex items-center gap-sm text-on-surface mb-md">
+                    <span class="material-symbols-outlined text-primary">shopping_bag</span> Order Items ({{ cart_items|length }})
+                </h2>
+                <div class="space-y-md">
+                    {% for item in cart_items %}
+                    <div class="flex gap-md pb-md border-b border-outline-variant items-center">
+                        <div class="w-16 h-16 bg-surface-variant rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
+                            {% if item.product.image %}
+                            <img class="w-full h-full object-cover" alt="{{ item.product.name }}" src="{{ item.product.image.url }}"/>
+                            {% else %}
+                            <span class="material-symbols-outlined text-outline">inventory_2</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-body-lg text-body-lg font-medium text-on-surface">{{ item.product.name }}</h3>
+                                <p class="font-label-md text-label-md text-on-surface-variant mt-xs">Vendor: {{ item.product.vendor.business_name }}</p>
+                            </div>
+                            <div class="flex justify-between items-center mt-sm">
+                                <span class="font-body-md text-body-md text-on-surface-variant">Qty: {{ item.quantity }}</span>
+                                <span class="font-title-lg text-title-lg text-on-surface">{{ item.get_total_price_kobo|naira }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-on-surface-variant text-center py-4">No items in your checkout list.</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <div class="lg:col-span-4">
+            <div class="rounded-xl p-md md:p-lg sticky top-[100px]" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+                <h2 class="font-title-lg text-title-lg text-on-surface mb-md">Order Summary</h2>
+                <div class="space-y-sm text-on-surface-variant font-body-md text-body-md border-b border-outline-variant pb-md mb-md">
+                    <div class="flex justify-between">
+                        <span>Subtotal ({{ cart_items|length }} items)</span>
+                        <span class="text-on-surface font-medium">{{ subtotal_kobo|naira }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Shipping</span>
+                        <span class="text-on-surface font-medium">{{ shipping_kobo|naira }}</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-end mb-lg">
+                    <span class="font-title-lg text-title-lg text-on-surface">Total</span>
+                    <span class="font-headline-md text-headline-md text-primary">{{ total_kobo|naira }}</span>
+                </div>
+                {% if cart_items %}
+                <fieldset class="mb-4 space-y-2">
+                    <legend class="mb-2 text-sm font-semibold text-on-surface">Payment method</legend>
+                    <label class="flex items-center gap-2 rounded-lg border border-outline-variant p-3 text-sm text-on-surface"><input type="radio" name="provider" value="paystack" checked required>Paystack</label>
+                </fieldset>
+                <button type="submit" class="w-full bg-primary hover:bg-primary-container text-on-primary font-button text-button py-3 rounded-lg shadow-md transition-all active:scale-[0.98] flex justify-center items-center gap-sm">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lock</span> Continue to Secure Payment
+                </button>
+                {% else %}
+                <button disabled type="button" class="w-full bg-surface-variant text-on-surface-variant font-button text-button py-3 rounded-lg cursor-not-allowed">
+                    No Items to Checkout
+                </button>
+                {% endif %}
+                <p class="font-label-md text-label-md text-center text-on-surface-variant mt-sm">
+                    By placing your order, you agree to TradeZone's <a class="text-primary hover:underline" href="#">Terms of Service</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</form>
 {% endblock %}

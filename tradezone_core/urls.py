@@ -1,11 +1,13 @@
 from django.contrib import admin
-from django.urls import path
-from products import views
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.home_view, name='home'),  # Home page
-    path('list/', views.list_item_view, name='list_item'),  # List items page
-    path('product/<int:id>/', views.product_detail_view, name='product_detail'),  # Product detail page
-    path('checkout/', views.checkout_view, name='checkout'),  # Checkout page
+    path('', include('products.urls')),
+    path('vendors/', include('vendors.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Payout Bank Account - TradeZone{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-2xl space-y-6">
+    <header>
+        <a href="{% url 'vendor_dashboard' %}" class="text-sm text-primary hover:underline">Vendor dashboard</a>
+        <h1 class="mt-2 text-2xl font-bold text-on-background">Payout bank account</h1>
+        <p class="mt-1 text-sm text-on-surface-variant">Paystack verifies the account name before it is saved as a transfer recipient.</p>
+    </header>
+    {% if messages %}{% for message in messages %}<p class="rounded-lg border border-outline-variant bg-surface p-3 text-sm {% if message.tags == 'error' %}text-red-700{% else %}text-green-700{% endif %}">{{ message }}</p>{% endfor %}{% endif %}
+    <form method="post" class="space-y-4 border-y border-outline-variant py-5">
+        {% csrf_token %}
+        <label class="block text-sm font-medium text-on-surface">Bank code
+            <input name="bank_code" value="{{ vendor.bank_code }}" required maxlength="10" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2" autocomplete="off">
+        </label>
+        <label class="block text-sm font-medium text-on-surface">Account number
+            <input name="account_number" value="{{ vendor.bank_account_number }}" required inputmode="numeric" maxlength="20" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2" autocomplete="off">
+        </label>
+        <button name="action" value="resolve" class="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-4 py-2 font-medium text-on-surface"><span class="material-symbols-outlined text-[18px]">manage_search</span>Resolve with Paystack</button>
+    </form>
+    {% if resolved_account %}
+    <form method="post" class="space-y-4 border-y border-outline-variant py-5">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="confirm">
+        <p class="text-sm text-on-surface-variant">Resolved account name</p>
+        <p class="text-lg font-semibold text-on-surface">{{ resolved_account.account_name }}</p>
+        <p class="text-sm text-on-surface-variant">Account ending {{ resolved_account.account_number|slice:'-4:' }}</p>
+        <label class="block text-sm font-medium text-on-surface">Type the exact resolved name to confirm
+            <input name="confirmed_account_name" required class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2" autocomplete="off">
+        </label>
+        <button class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-on-primary" type="submit"><span class="material-symbols-outlined text-[18px]">account_balance</span>Confirm and create recipient</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

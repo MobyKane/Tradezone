@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - TradeZone{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-surface rounded-2xl shadow-sm border border-surface-variant p-6 md:p-8">
+    <div class="mb-6 text-center">
+        <h1 class="text-3xl font-bold text-on-background">Welcome back</h1>
+        <p class="mt-2 text-sm text-on-surface-variant">Sign in to continue shopping and manage your profile.</p>
+    </div>
+
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="rounded-lg border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-sm">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div>
+            <label for="id_username" class="block text-sm font-medium text-on-surface mb-1">Username</label>
+            {{ form.username }}
+        </div>
+
+        <div>
+            <label for="id_password" class="block text-sm font-medium text-on-surface mb-1">Password</label>
+            {{ form.password }}
+        </div>
+
+        <div>
+            <label for="id_role" class="block text-sm font-medium text-on-surface mb-1">Sign in as</label>
+            {{ form.role }}
+            {% if form.role.errors %}<div class="mt-1 text-xs text-red-600">{{ form.role.errors }}</div>{% endif %}
+        </div>
+
+        {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+        {% endif %}
+
+        <button type="submit" class="w-full bg-primary hover:bg-primary-container text-on-primary font-button text-button py-3 rounded-lg shadow-md transition-all active:scale-[0.98]">
+            Sign in
+        </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-on-surface-variant">
+        Need an account?
+        <a href="{% url 'signup' %}" class="text-primary font-medium hover:underline">Create one</a>
+    </p>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load money %}
+{% block title %}Vendor Earnings - TradeZone{% endblock %}
+{% block content %}
+<div class="space-y-8">
+    <header class="flex flex-wrap items-end justify-between gap-4 border-b border-outline-variant pb-5">
+        <div><p class="text-sm text-on-surface-variant">{{ vendor.business_name }}</p><h1 class="mt-1 text-2xl font-bold text-on-background">Earnings and payouts</h1></div>
+        <a href="{% url 'vendor_bank' %}" class="inline-flex items-center gap-2 rounded-lg border border-outline-variant bg-surface px-4 py-2 text-sm font-medium text-on-surface"><span class="material-symbols-outlined text-[18px]">account_balance</span>{% if vendor.paystack_recipient_code %}Manage bank{% else %}Set up bank{% endif %}</a>
+    </header>
+    {% if messages %}<div class="space-y-2">{% for message in messages %}<p class="rounded-lg border border-outline-variant bg-surface p-3 text-sm {% if message.tags == 'error' %}text-red-700{% else %}text-green-700{% endif %}">{{ message }}</p>{% endfor %}</div>{% endif %}
+    <section class="grid grid-cols-1 gap-5 border-b border-outline-variant pb-6 md:grid-cols-3">
+        <div><p class="text-sm text-on-surface-variant">Pending, in holding period</p><p class="mt-1 text-2xl font-bold text-on-surface">{{ wallet.pending_balance_kobo|naira }}</p></div>
+        <div><p class="text-sm text-on-surface-variant">Available to withdraw</p><p class="mt-1 text-2xl font-bold text-primary">{{ wallet.available_balance_kobo|naira }}</p></div>
+        <div><p class="text-sm text-on-surface-variant">Total paid out</p><p class="mt-1 text-2xl font-bold text-on-surface">{{ wallet.total_paid_out_kobo|naira }}</p></div>
+    </section>
+    <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div>
+            <h2 class="mb-4 text-lg font-semibold text-on-surface">Order earnings</h2>
+            <div class="overflow-x-auto border-y border-outline-variant">
+                <table class="w-full text-left text-sm"><thead class="text-on-surface-variant"><tr><th class="py-3 pr-4">Order</th><th class="py-3 pr-4">Item</th><th class="py-3 pr-4">Gross</th><th class="py-3 pr-4">Commission</th><th class="py-3">Vendor net</th></tr></thead><tbody>
+                {% for item in earned_items %}<tr class="border-t border-outline-variant"><td class="py-3 pr-4">#{{ item.order_id }}</td><td class="py-3 pr-4">{{ item.product.name|default:'Removed item' }}</td><td class="py-3 pr-4">{{ item.price_kobo|multiply:item.quantity|naira }}</td><td class="py-3 pr-4">{{ item.commission_kobo|naira }} ({{ item.commission_rate_bps|floatformat:0 }} bps)</td><td class="py-3">{{ item.vendor_net_kobo|naira }}</td></tr>{% empty %}<tr><td colspan="5" class="py-6 text-center text-on-surface-variant">No paid orders yet.</td></tr>{% endfor %}
+                </tbody></table>
+            </div>
+        </div>
+        <div>
+            <h2 class="mb-4 text-lg font-semibold text-on-surface">Request withdrawal</h2>
+            <form method="post" class="space-y-3 border-y border-outline-variant py-4">
+                {% csrf_token %}
+                <label class="block text-sm font-medium text-on-surface">Amount (NGN)
+                    <input type="number" name="amount" min="5000" step="0.01" required class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2">
+                </label>
+                <p class="text-xs text-on-surface-variant">Minimum withdrawal: NGN 5,000. Transfers are sent through Paystack.</p>
+                <button class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-on-primary"><span class="material-symbols-outlined text-[18px]">payments</span>Request payout</button>
+            </form>
+            <h2 class="mb-3 mt-7 text-lg font-semibold text-on-surface">Payout history</h2>
+            <ul class="divide-y divide-outline-variant text-sm">{% for payout in payouts %}<li class="py-3"><div class="flex justify-between gap-2"><span>{{ payout.reference|truncatechars:18 }}</span><strong>{{ payout.amount_kobo|naira }}</strong></div><p class="mt-1 text-on-surface-variant">{{ payout.get_status_display }} · {{ payout.requested_at|date:'M j, Y' }}</p></li>{% empty %}<li class="py-3 text-on-surface-variant">No withdrawals yet.</li>{% endfor %}</ul>
+        </div>
+    </section>
+</div>
+{% endblock %}

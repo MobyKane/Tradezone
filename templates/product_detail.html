@@ -1,129 +1,119 @@
 {% extends 'base.html' %}
+{% load money %}
 
-{% block title %}TradeZone - Product Detail{% endblock %}
+{% block title %}{{ product.name }} - TradeZone{% endblock %}
 
 {% block content %}
+{% if messages %}
+<div class="mb-6 space-y-2">
+    {% for message in messages %}
+    <div class="p-4 rounded-lg text-sm font-medium {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <nav class="text-label-md text-on-surface-variant mb-6 hidden md:flex items-center gap-2">
-<a class="hover:text-primary transition-colors" href="#">Electronics</a>
-<span class="material-symbols-outlined text-[16px]">chevron_right</span>
-<a class="hover:text-primary transition-colors" href="#">Audio</a>
-<span class="material-symbols-outlined text-[16px]">chevron_right</span>
-<span class="text-on-surface font-medium">Quantum Noise-Canceling Headphones v3</span>
+    <a class="hover:text-primary transition-colors" href="{% url 'home' %}">Home</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <a class="hover:text-primary transition-colors" href="{% url 'home' %}?category={{ product.category }}">{{ product.category }}</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <span class="text-on-surface font-medium">{{ product.name }}</span>
 </nav>
+
 <div class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-xl">
-<div class="md:col-span-7 flex flex-col gap-4">
-<div class="bg-surface rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] overflow-hidden aspect-square md:aspect-[4/3] relative group">
-<img class="w-full h-full object-cover" data-alt="A highly detailed, professional product shot of sleek, premium over-ear headphones in a matte dark grey finish. The lighting is crisp and studio-quality, creating soft highlights on the curved earcups and metallic accents. The background is a stark, pure white to emphasize the product's high-tech, modern design. The overall aesthetic is clean, sophisticated, and geared towards a high-end consumer electronics marketplace." id="main-product-image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwcyGfxXNqOfAKhTxZ7h-epOdntAM_wmYzWBR0dO0E4_QokJcdfObP5qRoz6u35i2o9NZ1yCKdpbLfcToy0v4oW9XXVMH_HZlNaqWBinmtmyVPWG72q4zUg1OVIkx-LEajYTwf2hhQVIMTFhc-7a1Nm_WRaXJF4WWepaRIp3MadXIQ_qa9d0wO2Opk0G2myOd77ooNDtd4iXljfHAE95WXZRG3fK6T4MsZKRpc23a_k42Dan8VcmkK9A"/>
-<button class="absolute top-4 right-4 bg-surface/80 backdrop-blur-md p-2 rounded-full text-on-surface-variant hover:text-primary transition-colors shadow-sm">
-<span class="material-symbols-outlined" data-icon="favorite_border">favorite_border</span>
-</button>
-</div>
-<div class="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
-<button class="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border-2 border-primary flex-shrink-0 cursor-pointer">
-<img class="w-full h-full object-cover" data-alt="A close up angle of sleek over ear headphones focusing on the plush ear pads and minimalist metallic hinge against a clean white background. High end studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo6jaQVNx8A8qC7vFOs7MInMTi3BuTejOAqeKLoEkSOxL3wu6NNOJX96oFVLgfCNtON9Kap3dJHwnx2aFlfE_DXVCfcbOtOm9FOYrGIeLVVYmjVaza7sZjKQg23cuyHWhCICxuaApsCb-QUEdlQ7cVp2JcKVdz9VkoaYx2XnQDy1U1jJU3stNiKlWeHXVit7Hl3xKPIIGCDQ2enZq8sFWeA0yKPThrXdJ_zuT-GFFOxcex4S228T5smQ"/>
-</button>
-<button class="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-outline-variant hover:border-primary transition-colors flex-shrink-0 cursor-pointer opacity-70 hover:opacity-100">
-<img class="w-full h-full object-cover" data-alt="Side profile shot of premium matte grey over ear headphones on a pure white background. Crisp professional product photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPNjVA8Rj1EUZtavtcscHM6fwUeewvvksN9D4KTYw42Kh7RreZWoWTxKpXwsVwnCWi8u26QwwGEME9M9cSy9FvfHvcx2gMPkp1H5Dj4YaKufPRsAyon8Tf-PQmfN_h4xkWjUcalzrRPdz1MDJswjm5l7SzH2qSkiXJ-VGo4xznYQ2Nz-jQo1fICZxO6mPgY3ReP5JDGPYzE59wQZALYAw6Hqvg69_dZCAkWqWfGti_P31qKdJJaokmrg"/>
-</button>
-<button class="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-outline-variant hover:border-primary transition-colors flex-shrink-0 cursor-pointer opacity-70 hover:opacity-100">
-<img class="w-full h-full object-cover" data-alt="Detail shot of the textured control buttons on the side of a modern headphone earcup. Studio lighting, white background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrJjM5feBN1emYQ5VeNQnBWflyDu4TLiV02n0UEZEDaZtUQDvDUxFShoWWbHougyHjr0tFz3E38fX8e0bnTUpya-P0mXW-AucfDd_NGI8hUTjMnnS79Ljc31Q9J_eFI8YgnZgN_aZ3AEdRcJOZd_yS1d0q3K-wiG8Jr86T86ZxMAKD1CIJfEUv7ePeajNUNCHgKC6pJVSGrbcKqF_3VB3bi5S_owFOA4YS_JeqLGqkW5-4wlZTCTMknA"/>
-</button>
-<button class="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-outline-variant hover:border-primary transition-colors flex-shrink-0 cursor-pointer opacity-70 hover:opacity-100 flex items-center justify-center bg-surface-variant text-on-surface-variant">
-<span class="material-symbols-outlined" data-icon="play_circle">play_circle</span>
-</button>
-</div>
-</div>
-<div class="md:col-span-5 flex flex-col gap-6">
-<div class="bg-surface rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] p-6 md:p-8 flex flex-col gap-4">
-<div class="flex items-center gap-2 mb-1">
-<span class="bg-tertiary-container/10 text-tertiary font-label-md px-2 py-1 rounded-full uppercase tracking-wider">Top Rated</span>
-<div class="flex items-center text-secondary-container">
-<span class="material-symbols-outlined text-[16px]" data-icon="star" data-weight="fill">star</span>
-<span class="font-label-md ml-1 text-on-surface font-semibold">4.9</span>
-<span class="font-label-md text-on-surface-variant ml-1">(128 reviews)</span>
-</div>
-</div>
-<h1 class="font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2">Quantum Noise-Canceling Headphones v3</h1>
-<div class="font-display-lg text-primary mb-2">$299.00</div>
-<p class="font-body-md text-on-surface-variant">Experience unparalleled audio clarity with the next generation of active noise cancellation. Featuring 40mm custom drivers, 30-hour battery life, and ultra-plush memory foam earcups for all-day comfort.</p>
-<div class="mt-4">
-<span class="font-label-md text-on-surface-variant uppercase tracking-wide block mb-2">Color: Matte Obsidian</span>
-<div class="flex gap-3">
-<button aria-label="Matte Obsidian" class="w-8 h-8 rounded-full bg-[#313030] ring-2 ring-primary ring-offset-2 ring-offset-surface"></button>
-<button aria-label="Lunar White" class="w-8 h-8 rounded-full bg-[#e5e2e1] ring-1 ring-outline-variant hover:ring-2 hover:ring-primary hover:ring-offset-2 hover:ring-offset-surface transition-all"></button>
-<button aria-label="Deep Blue" class="w-8 h-8 rounded-full bg-[#005bc0] ring-1 ring-outline-variant hover:ring-2 hover:ring-primary hover:ring-offset-2 hover:ring-offset-surface transition-all"></button>
-</div>
-</div>
-<div class="flex flex-col sm:flex-row gap-4 mt-6 pt-6 border-t border-surface-variant">
-<button class="flex-1 bg-surface border-2 border-primary text-primary font-button py-3 px-6 rounded-lg hover:bg-primary-fixed transition-colors flex items-center justify-center gap-2 shadow-sm">
-<span class="material-symbols-outlined text-[20px]" data-icon="add_shopping_cart">add_shopping_cart</span> Add to Cart
-</button>
-<button class="flex-1 bg-secondary-container text-on-secondary font-button py-3 px-6 rounded-lg hover:bg-secondary transition-colors flex items-center justify-center gap-2 shadow-[0px_8px_30px_rgba(0,0,0,0.08)]">
-<span class="material-symbols-outlined text-[20px]" data-icon="bolt">bolt</span> Buy Now
-</button>
-</div>
-</div>
-<div class="bg-surface rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] p-4 flex items-center justify-between border border-surface-variant">
-<div class="flex items-center gap-4">
-<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-variant relative">
-<img class="w-full h-full object-cover" data-alt="A clean, abstract geometric logo featuring interlocking blue and white shapes representing technology and sound, set against a plain light background. Suitable for a modern tech vendor avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4ZYnteX8cyUg8-Si6ojwykOhcWJpWNaPa-M92pVPi-Q6YMbuUd-Piyr4na1mDQklmrP9j0bpk1Yjyh7szXdl-60pYusNXi0HKV96pt3tHJFF1wgCPRGuqqsZcBEQ-nvUcim6ggcmE3dAKEN2DMQ3_zltfQY8729VKrwvKSZqvrqtMb_NrpOkZc7A7xWtqyhAZn2igC9jHiu_VHxkIEOH311O3WtbrYP7C5Z9igHL4TdUdBfs8ViPAKA"/>
-<div class="absolute bottom-0 right-0 bg-primary text-on-primary rounded-full w-4 h-4 flex items-center justify-center border-2 border-surface">
-<span class="material-symbols-outlined text-[10px]" data-icon="verified" data-weight="fill">verified</span>
-</div>
-</div>
-<div>
-<div class="font-title-lg text-on-surface text-[16px]">Aura Electronics</div>
-<div class="font-label-md text-on-surface-variant">99.8% Positive Feedback</div>
-</div>
-</div>
-<button class="text-primary font-button hover:bg-primary-fixed px-3 py-1.5 rounded-md transition-colors text-sm">Visit Store</button>
-</div>
-<div class="grid grid-cols-3 gap-2 mt-2">
-<div class="flex flex-col items-center text-center p-3 bg-surface-container-lowest rounded-lg border border-surface-variant">
-<span class="material-symbols-outlined text-outline mb-1" data-icon="local_shipping">local_shipping</span>
-<span class="font-label-md text-on-surface-variant text-[10px]">Free Shipping</span>
-</div>
-<div class="flex flex-col items-center text-center p-3 bg-surface-container-lowest rounded-lg border border-surface-variant">
-<span class="material-symbols-outlined text-outline mb-1" data-icon="verified_user">verified_user</span>
-<span class="font-label-md text-on-surface-variant text-[10px]">Buyer Protection</span>
-</div>
-<div class="flex flex-col items-center text-center p-3 bg-surface-container-lowest rounded-lg border border-surface-variant">
-<span class="material-symbols-outlined text-outline mb-1" data-icon="assignment_return">assignment_return</span>
-<span class="font-label-md text-on-surface-variant text-[10px]">30-Day Returns</span>
-</div>
-</div>
-</div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-xl">
-<div class="md:col-span-8 bg-surface rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] p-6 md:p-8">
-<h2 class="font-title-lg text-on-surface border-b border-surface-variant pb-4 mb-6">Product Details</h2>
-<div class="font-body-md text-on-surface-variant space-y-4">
-<p>Engineered for the discerning audiophile, the Quantum v3 integrates state-of-the-art acoustic architecture with proprietary noise-canceling algorithms. The result is a soundstage that is both expansive and intimately detailed, free from external distractions.</p>
-<h3 class="font-title-lg text-on-surface text-[16px] mt-6 mb-2">Key Specifications</h3>
-<ul class="list-disc pl-5 space-y-2">
-<li><strong>Driver Size:</strong> 40mm Titanium-coated dynamic drivers</li>
-<li><strong>Frequency Response:</strong> 10Hz - 40kHz (Hi-Res Audio Certified)</li>
-<li><strong>Noise Cancellation:</strong> Hybrid Active Noise Cancellation (up to 35dB reduction)</li>
-<li><strong>Battery Life:</strong> Up to 30 hours with ANC on, 40 hours ANC off</li>
-<li><strong>Connectivity:</strong> Bluetooth 5.3, Multipoint connection, 3.5mm wired option</li>
-<li><strong>Weight:</strong> 250 grams</li>
-</ul>
-</div>
-</div>
-<div class="md:col-span-4 flex flex-col gap-4">
-<h3 class="font-title-lg text-on-surface mb-2">Frequently Bought Together</h3>
-<div class="bg-surface rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] p-4 flex gap-4 items-center cursor-pointer hover:shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-shadow">
-<div class="w-16 h-16 rounded-md overflow-hidden bg-surface-variant flex-shrink-0">
-<img class="w-full h-full object-cover" data-alt="A small, sleek black hard-shell carrying case for headphones on a white background. Professional product shot." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkU8wAptdwAysrtpImzuYlidh8YaDfhrXzDYq0ekcJPCCAxrLENPVw1nl8gBD04J2rzzG7oyTP8Mj9dyyNBJukzXG_cFVMhBfcBfrdnW9GHfF8pg-x6Iwcd6ACWHd8cF89D5u3Px4EpXaUckMj4UeheHBnEeE4aY8Igu3HPDaDEysTJybHGMMInkJX5wqAJnRk9EJd0_nOFW2N60VbYe29rcikiQAM_0yUbGbAqOekHWtxfPme_Mx6qA"/>
-</div>
-<div class="flex-1">
-<div class="font-body-md text-on-surface font-medium line-clamp-1">Premium Hard Shell Case</div>
-<div class="font-label-md text-primary mt-1">$29.99</div>
-</div>
-<button aria-label="Add related item" class="text-on-surface-variant hover:text-primary transition-colors p-2">
-<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-</button>
-</div>
-</div>
+    <div class="md:col-span-7 flex flex-col gap-4">
+        <div id="tour-detail-image" class="bg-surface rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] overflow-hidden aspect-square md:aspect-[4/3] relative group flex items-center justify-center p-4">
+            {% if product.image %}
+            <img class="w-full h-full object-contain" id="main-product-image" src="{{ product.image.url }}" alt="{{ product.name }}"/>
+            {% else %}
+            <div class="w-full h-full flex flex-col items-center justify-center bg-surface-variant text-on-surface-variant rounded-lg">
+                <span class="material-symbols-outlined text-6xl">inventory_2</span>
+                <span class="text-sm mt-2 font-medium">No Image Uploaded</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="md:col-span-5 flex flex-col gap-6">
+        <div id="tour-detail-info" class="bg-surface rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] p-6 md:p-8 flex flex-col gap-4">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="bg-primary/10 text-primary font-label-md px-2.5 py-1 rounded-full text-xs font-semibold">{{ product.category }}</span>
+                {% if product.category == 'Fashion' and product.section %}<span class="bg-surface-container-high text-on-surface font-label-md px-2.5 py-1 rounded-full text-xs font-semibold">{{ product.section.name }}</span>{% endif %}
+                <span class="text-xs text-on-surface-variant">Stock: {{ product.stock }} units</span>
+            </div>
+            <h1 class="font-headline-lg-mobile md:font-headline-lg text-on-surface text-2xl font-bold mb-2">{{ product.name }}</h1>
+            
+            <div class="flex items-baseline gap-3 mb-2">
+                <span class="font-display-lg text-primary text-3xl font-bold">{{ product.current_price_kobo|naira }}</span>
+                {% if product.discount_price %}
+                <span class="text-lg text-on-surface-variant line-through">{{ product.price_kobo|naira }}</span>
+                {% endif %}
+            </div>
+
+            <p class="font-body-md text-on-surface-variant leading-relaxed">{{ product.description }}</p>
+
+            <div class="flex flex-col sm:flex-row gap-4 mt-6 pt-6 border-t border-surface-variant">
+                <a id="tour-detail-add" href="{% url 'add_to_cart' product.id %}" class="flex-1 bg-primary text-on-primary font-button py-3 px-6 rounded-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-2 shadow-sm text-center">
+                    <span class="material-symbols-outlined text-[20px]">add_shopping_cart</span> Add to Cart
+                </a>
+                <a href="{% url 'add_to_cart' product.id %}" class="flex-1 bg-secondary text-on-secondary font-button py-3 px-6 rounded-lg hover:bg-secondary-container transition-colors flex items-center justify-center gap-2 shadow-[0px_8px_30px_rgba(0,0,0,0.08)] text-center">
+                    <span class="material-symbols-outlined text-[20px]">bolt</span> Buy Now
+                </a>
+            </div>
+            {% if request.user.is_staff or request.user.id == product.vendor.user_id %}
+            <div class="flex flex-wrap gap-3 border-t border-surface-variant pt-4">
+                <a href="{% url 'edit_product' product.id %}" class="inline-flex items-center gap-2 rounded-lg border border-outline-variant bg-surface px-4 py-2.5 font-medium text-primary transition-colors hover:bg-surface-container-low">
+                    <span class="material-symbols-outlined text-[18px]">edit</span>Edit product
+                </a>
+                <form method="POST" action="{% url 'delete_product' product.id %}" onsubmit="return confirm('Delete {{ product.name|escapejs }}?');">
+                    {% csrf_token %}
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-2.5 font-medium text-red-700 transition-colors hover:bg-red-100">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>Delete product
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            {% if can_report_product %}
+            <form method="post" action="{% url 'report_product' product.id %}" class="mt-4 border-t border-surface-variant pt-4">
+                {% csrf_token %}
+                <label for="report-reason" class="mb-2 block text-sm font-medium text-on-surface">Report wrong category</label>
+                <textarea id="report-reason" name="reason" required maxlength="1000" rows="2" class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm" placeholder="Tell us why this product is miscategorized"></textarea>
+                <button type="submit" class="mt-2 inline-flex items-center gap-2 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"><span class="material-symbols-outlined text-[18px]">flag</span>Submit report</button>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="bg-surface rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] p-4 flex items-center justify-between border border-surface-variant">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xl shadow-inner">
+                    {{ product.vendor.business_name|slice:":1"|upper }}
+                </div>
+                <div>
+                    <div class="font-title-lg text-on-surface text-[16px] font-bold flex items-center gap-1">
+                        {{ product.vendor.business_name }}
+                        <span class="material-symbols-outlined text-[16px] text-tertiary">verified</span>
+                    </div>
+                    <div class="font-label-md text-on-surface-variant text-xs">Verified Vendor</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mt-2">
+            <div class="flex flex-col items-center text-center p-3 bg-surface-container-lowest rounded-lg border border-surface-variant">
+                <span class="material-symbols-outlined text-outline mb-1">local_shipping</span>
+                <span class="font-label-md text-on-surface-variant text-[10px]">Fast Delivery</span>
+            </div>
+            <div class="flex flex-col items-center text-center p-3 bg-surface-container-lowest rounded-lg border border-surface-variant">
+                <span class="material-symbols-outlined text-outline mb-1">verified_user</span>
+                <span class="font-label-md text-on-surface-variant text-[10px]">Buyer Protection</span>
+            </div>
+            <div class="flex flex-col items-center text-center p-3 bg-surface-container-lowest rounded-lg border border-surface-variant">
+                <span class="material-symbols-outlined text-outline mb-1">assignment_return</span>
+                <span class="font-label-md text-on-surface-variant text-[10px]">30-Day Returns</span>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

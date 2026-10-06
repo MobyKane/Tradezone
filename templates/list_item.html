@@ -1,108 +1,162 @@
 {% extends 'base.html' %}
 
-{% block title %}TradeZone - Vendor Upload{% endblock %}
+{% block title %}TradeZone - Add Product Listing{% endblock %}
 
 {% block content %}
 <div class="mb-lg">
-<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Add New Listing</h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant mt-2">Provide detailed information to make your product stand out.</p>
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">{% if edit_mode %}Edit {{ product.name }}{% else %}Add New {% if selected_category %}{{ selected_category }} {% endif %}Listing{% endif %}</h1>
+            <p class="font-body-lg text-body-lg text-on-surface-variant mt-2">{% if edit_mode %}Update the details for this product.{% else %}Provide detailed information to make your product stand out.{% endif %}</p>
+        </div>
+        <a href="{% url 'home' %}" class="inline-flex items-center gap-2 rounded-lg border border-outline-variant bg-surface px-4 py-2.5 font-medium text-on-surface transition-colors hover:bg-surface-container-low">
+            <span class="material-symbols-outlined">arrow_back</span>Back to home
+        </a>
+    </div>
 </div>
-<form class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-<div class="lg:col-span-8 space-y-gutter">
-<div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
-<h2 class="font-title-lg text-title-lg text-on-surface mb-md">Product Media</h2>
-<div class="border-2 border-dashed border-outline-variant hover:border-primary transition-colors rounded-xl p-xl flex flex-col items-center justify-center text-center cursor-pointer bg-surface-container-low" id="dropzone">
-<div class="w-16 h-16 bg-primary-fixed rounded-full flex items-center justify-center mb-4">
-<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 0;">cloud_upload</span>
+
+{% if messages %}
+<div class="mb-6 space-y-2">
+    {% for message in messages %}
+    <div class="p-4 rounded-lg text-sm font-medium {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
 </div>
-<p class="font-button text-button text-on-surface mb-1">Click to upload or drag and drop</p>
-<p class="font-label-md text-label-md text-outline">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+{% endif %}
+
+{% if form.errors %}
+<div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+    {% for field_name, field_errors in form.errors.items %}
+    {% for error in field_errors %}<p>{{ field_name|title }}: {{ error }}</p>{% endfor %}
+    {% endfor %}
 </div>
-<div class="grid grid-cols-4 gap-sm mt-md">
-<div class="aspect-square rounded-lg bg-surface-variant relative overflow-hidden group">
-<img class="w-full h-full object-cover" data-alt="A close up, high quality studio shot of a modern electronic gadget on a clean white background, vibrant lighting, professional commercial photography style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyT8K_2dv472z51WIClQvfQHzY5XAUx2uFCOkks9I2dpfn7_Cw2iTFhLBjN4nxXWnm6SVaq_zBqXkUQQ8ORncHmHTriEWWJSQNiaghTfDbLgruWfqJl00SHEq5HNUJKm6TQipCCxeP5cNBz27e7_xL6RqJsE4NLy0eOAk5Xea-3Kd-p4it63da3HNHYhi-5recJjJ6QdQRXHK6cgvcvUNjRyr5w1nPUw7d1uNU7HtBVBnX0a8OcxQ1HQ"/>
-<button class="absolute top-1 right-1 bg-surface/80 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" type="button">
-<span class="material-symbols-outlined text-error text-sm">close</span>
-</button>
-</div>
-<div class="aspect-square rounded-lg border border-dashed border-outline-variant flex items-center justify-center text-outline-variant hover:text-primary hover:border-primary cursor-pointer transition-colors">
-<span class="material-symbols-outlined">add</span>
-</div>
-</div>
-</div>
-<div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
-<h2 class="font-title-lg text-title-lg text-on-surface mb-md">Basic Information</h2>
-<div class="space-y-md">
-<div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="product_name">Product Title <span class="text-error">*</span></label>
-<input class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="product_name" placeholder="e.g., Wireless Noise-Cancelling Headphones" type="text"/>
-</div>
-<div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="description">Description <span class="text-error">*</span></label>
-<textarea class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="description" placeholder="Describe your product's key features, benefits, and specifications..." rows="5"></textarea>
-</div>
-</div>
-</div>
-</div>
-<div class="lg:col-span-4 space-y-gutter">
-<div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
-<h2 class="font-title-lg text-title-lg text-on-surface mb-md">Pricing</h2>
-<div class="space-y-md">
-<div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="price">Base Price <span class="text-error">*</span></label>
-<div class="relative">
-<span class="absolute inset-y-0 left-0 flex items-center pl-4 text-on-surface-variant font-bold">$</span>
-<input class="w-full rounded-lg border border-outline-variant bg-surface pl-8 pr-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-lg text-on-surface font-bold" id="price" placeholder="0.00" type="number"/>
-</div>
-</div>
-<div class="flex items-center justify-between">
-<label class="font-label-md text-label-md text-on-surface-variant">Discounted Price</label>
-<label class="relative inline-flex items-center cursor-pointer">
-<input class="sr-only peer" type="checkbox" value=""/>
-<div class="w-9 h-5 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-</label>
-</div>
-</div>
-</div>
-<div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
-<h2 class="font-title-lg text-title-lg text-on-surface mb-md">Organization</h2>
-<div class="space-y-md">
-<div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="category">Category <span class="text-error">*</span></label>
-<div class="relative">
-<select class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 appearance-none focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface" id="category">
-<option disabled="" selected="" value="">Select a category</option>
-<option value="electronics">Electronics & Gadgets</option>
-<option value="fashion">Fashion & Apparel</option>
-<option value="home">Home & Living</option>
-</select>
-<span class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-<span class="material-symbols-outlined text-outline">expand_more</span>
-</span>
-</div>
-</div>
-<div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="tags">Tags</label>
-<input class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="tags" placeholder="Press enter to add tags" type="text"/>
-<div class="flex flex-wrap gap-2 mt-2">
-<span class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container-high rounded-full font-label-md text-label-md text-on-surface">
-Tech <button type="button"><span class="material-symbols-outlined text-[14px]">close</span></button>
-</span>
-<span class="inline-flex items-center gap-1 px-3 py-1 bg-surface-container-high rounded-full font-label-md text-label-md text-on-surface">
-New Arrival <button type="button"><span class="material-symbols-outlined text-[14px]">close</span></button>
-</span>
-</div>
-</div>
-</div>
-</div>
-<div class="flex flex-col gap-sm mt-lg">
-<button class="w-full bg-primary text-on-primary font-button text-button py-3 px-6 rounded-lg hover:bg-surface-tint shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all flex items-center justify-center gap-2" type="submit">
-<span class="material-symbols-outlined text-[18px]">publish</span> Publish Listing
-</button>
-<button class="w-full border-2 border-outline-variant text-on-surface-variant font-button text-button py-3 px-6 rounded-lg hover:border-primary hover:text-primary transition-all" type="button">
-Save as Draft
-</button>
-</div>
-</div>
+{% endif %}
+
+<form method="POST" action="{% if edit_mode %}{% url 'edit_product' product.id %}{% else %}{% url 'list_item' %}{% endif %}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+    {% csrf_token %}
+    <div class="lg:col-span-8 space-y-gutter">
+        <div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
+            <h2 class="font-title-lg text-title-lg text-on-surface mb-md">Product Image</h2>
+            <div class="border-2 border-dashed border-outline-variant hover:border-primary transition-colors rounded-xl p-xl flex flex-col items-center justify-center text-center cursor-pointer bg-surface-container-low relative">
+                <input type="file" name="image" id="id_image" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" accept="image/*" onchange="document.getElementById('file-name').textContent = this.files[0] ? this.files[0].name : 'Click to upload or drag and drop';"/>
+                <div class="w-16 h-16 bg-primary-fixed rounded-full flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 0;">cloud_upload</span>
+                </div>
+                <p class="font-button text-button text-on-surface mb-1" id="file-name">Click to upload or drag and drop</p>
+                <p class="font-label-md text-label-md text-outline">PNG, JPG, WEBP, or GIF (max 5MB)</p>
+            </div>
+        </div>
+        
+        <div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
+            <h2 class="font-title-lg text-title-lg text-on-surface mb-md">Basic Information</h2>
+            <div class="space-y-md">
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="product_name">Product Title <span class="text-error">*</span></label>
+                    <input name="name" value="{{ form.name.value|default_if_none:product.name|default_if_none:'' }}" required class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="product_name" placeholder="e.g., Wireless Noise-Cancelling Headphones" type="text"/>
+                </div>
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="description">Description <span class="text-error">*</span></label>
+                    <textarea name="description" required class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="description" placeholder="Describe your product's key features, benefits, and specifications..." rows="5">{{ form.description.value|default_if_none:product.description|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="lg:col-span-4 space-y-gutter">
+        <div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
+            <h2 class="font-title-lg text-title-lg text-on-surface mb-md">Pricing & Inventory</h2>
+            <div class="space-y-md">
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="price">Price (NGN) <span class="text-error">*</span></label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-on-surface-variant font-bold">₦</span>
+                        <input name="price" value="{{ form.price.value|default_if_none:product.price|default_if_none:'' }}" step="0.01" required class="w-full rounded-lg border border-outline-variant bg-surface pl-8 pr-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-lg text-on-surface font-bold" id="price" placeholder="0.00" type="number"/>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="stock">Stock Quantity</label>
+                    <input name="stock" type="number" value="{{ form.stock.value|default_if_none:product.stock|default:10 }}" min="1" class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface"/>
+                </div>
+                <div id="building-material-fields" class="space-y-md {% if not building_materials_category %}hidden{% endif %}">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-on-surface-variant" for="unit_of_sale">Unit of sale</label>
+                        <input name="unit_of_sale" id="unit_of_sale" value="{{ form.unit_of_sale.value|default_if_none:product.unit_of_sale|default:'' }}" placeholder="e.g. box, piece, bag" class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 text-on-surface"/>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-on-surface-variant" for="quantity_per_carton">Quantity per carton</label>
+                        <input name="quantity_per_carton" id="quantity_per_carton" type="number" min="1" value="{{ form.quantity_per_carton.value|default_if_none:product.quantity_per_carton|default:'' }}" class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 text-on-surface"/>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-on-surface-variant" for="dimensions">Size / dimensions</label>
+                        <input name="dimensions" id="dimensions" value="{{ form.dimensions.value|default_if_none:product.dimensions|default:'' }}" placeholder="e.g. 60 x 60 cm" class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 text-on-surface"/>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-on-surface-variant" for="material_finish">Material / finish</label>
+                        <input name="material_finish" id="material_finish" value="{{ form.material_finish.value|default_if_none:product.material_finish|default:'' }}" class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 text-on-surface"/>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-on-surface-variant" for="country_of_origin">Country of origin</label>
+                        <input name="country_of_origin" id="country_of_origin" value="{{ form.country_of_origin.value|default_if_none:product.country_of_origin|default:'' }}" class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 text-on-surface"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-panel rounded-xl p-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);">
+            <h2 class="font-title-lg text-title-lg text-on-surface mb-md">Organization</h2>
+            <div class="space-y-md">
+                <div>
+                    <label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="category">Subcategory <span class="text-error">*</span></label>
+                    <div class="relative">
+                        <select name="category" required onchange="toggleFashionSection()" class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 appearance-none focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface" id="category">
+                            {% for value, label in category_choices %}
+                            <option value="{{ value }}" {% if value == selected_category or not selected_category and value == 'Electronics' %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-outline">expand_more</span>
+                        </span>
+                    </div>
+                </div>
+                <div id="fashion-section-field" class="{% if selected_category != 'Fashion' and selected_category != 'Building Materials' %}hidden{% endif %}">
+                    <label class="block font-label-md text-label-md text-on-surface-variant mb-1" for="section">Section <span class="text-error">*</span></label>
+                    <div class="relative">
+                        <select name="section" id="section" {% if selected_category == 'Fashion' %}required{% endif %} class="w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 appearance-none focus:border-primary focus:ring-2 focus:ring-primary-fixed focus:outline-none transition-all font-body-md text-on-surface">
+                            <option value="">Choose a section</option>
+                            {% for section in section_choices %}
+                            <option value="{{ section.pk }}" data-category="{{ section.parent.slug }}" {% if selected_section|stringformat:'s' == section.pk|stringformat:'s' %}selected{% endif %}>{{ section.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-outline">expand_more</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex flex-col gap-sm mt-lg">
+            <button class="w-full bg-primary text-on-primary font-button text-button py-3 px-6 rounded-lg hover:bg-surface-tint shadow-[0px_8px_30px_rgba(0,0,0,0.08)] transition-all flex items-center justify-center gap-2" type="submit">
+                <span class="material-symbols-outlined text-[18px]">{% if edit_mode %}save{% else %}publish{% endif %}</span> {% if edit_mode %}Save Changes{% else %}Publish Listing{% endif %}
+            </button>
+        </div>
+    </div>
 </form>
+<script>
+function toggleFashionSection() {
+    const category = document.getElementById('category').value;
+    const visible = category === 'Fashion' || category === 'Building Materials';
+    const field = document.getElementById('fashion-section-field');
+    const select = document.getElementById('section');
+    document.getElementById('building-material-fields').classList.toggle('hidden', category !== 'Building Materials');
+    field.classList.toggle('hidden', !visible);
+    select.required = category === 'Building Materials';
+    for (const option of select.options) {
+        if (option.value) option.hidden = option.dataset.category !== (category === 'Fashion' ? 'fashion' : 'building-materials');
+    }
+    if (!visible || select.selectedOptions[0]?.hidden) select.value = '';
+}
+toggleFashionSection();
+</script>
 {% endblock %}

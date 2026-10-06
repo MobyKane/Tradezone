@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vendor Onboarding - TradeZone{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'vendor-onboarding.css' %}"/>{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl" data-vendor-wizard>
+    <header class="mb-6">
+        <a class="text-sm font-medium text-primary hover:underline" href="{% url 'home' %}">Home</a>
+        <h1 class="mt-2 text-2xl font-bold text-on-background">Set up your vendor account</h1>
+        <p class="mt-2 text-sm text-on-surface-variant">Complete each step to open your TradeZone store.</p>
+    </header>
+    <div class="mb-6" aria-label="Vendor onboarding progress">
+        <p class="mb-2 text-sm font-semibold text-on-surface">Step {{ step }} of 5</p>
+        <div class="h-2 overflow-hidden rounded-full bg-surface-variant"><div class="h-full bg-primary transition-all" style="width: {% if step == 1 %}20%{% elif step == 2 %}40%{% elif step == 3 %}60%{% elif step == 4 %}80%{% else %}100%{% endif %}"></div></div>
+        <ol class="mt-3 grid grid-cols-5 gap-1 text-center text-[11px] text-on-surface-variant sm:text-xs">
+            <li>Account</li><li>Store</li><li>Bank</li><li>Policy</li><li>Review</li>
+        </ol>
+    </div>
+
+    {% if errors %}
+    <div class="mb-5 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800" role="alert">
+        {% for message in errors.values %}<p>{{ message }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    <section class="vendor-wizard-panel rounded-xl border border-outline-variant bg-surface p-5 shadow-sm sm:p-7" aria-live="polite">
+        {% if step == 1 %}
+        <h2 class="text-xl font-bold text-on-surface">Your account</h2>
+        <p class="mt-1 text-sm text-on-surface-variant">Confirm the contact details buyers and TradeZone can use.</p>
+        <form method="post" class="mt-6 space-y-4">
+            {% csrf_token %}<input type="hidden" name="action" value="next">
+            <label class="block text-sm font-medium text-on-surface">First name<input name="first_name" required value="{{ request.user.first_name }}" autocomplete="given-name" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5"></label>
+            <label class="block text-sm font-medium text-on-surface">Last name<input name="last_name" required value="{{ request.user.last_name }}" autocomplete="family-name" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5"></label>
+            <label class="block text-sm font-medium text-on-surface">Email address<input name="email" required type="email" value="{{ request.user.email }}" autocomplete="email" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5"></label>
+            <div class="flex justify-end"><button class="rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary" type="submit">Continue</button></div>
+        </form>
+        {% elif step == 2 %}
+        <h2 class="text-xl font-bold text-on-surface">Your store</h2>
+        <p class="mt-1 text-sm text-on-surface-variant">Choose the name and audience buyers will see.</p>
+        <form method="post" class="mt-6 space-y-4">
+            {% csrf_token %}<input type="hidden" name="action" value="next">
+            <label class="block text-sm font-medium text-on-surface">Store name<input name="business_name" required maxlength="255" value="{{ vendor.business_name }}" autocomplete="organization" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5"></label>
+            <label class="block text-sm font-medium text-on-surface">Store description <span class="font-normal text-on-surface-variant">(optional)</span><textarea name="business_description" rows="3" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5">{{ vendor.business_description }}</textarea></label>
+            <label class="block text-sm font-medium text-on-surface">Fashion audience<select name="fashion_audience" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5"><option value="" {% if not vendor.fashion_audience %}selected{% endif %}>No restriction</option><option value="men" {% if vendor.fashion_audience == 'men' %}selected{% endif %}>Men</option><option value="women" {% if vendor.fashion_audience == 'women' %}selected{% endif %}>Women</option><option value="both" {% if vendor.fashion_audience == 'both' %}selected{% endif %}>Both</option></select></label>
+            <div class="flex justify-between"><button class="rounded-lg border border-outline-variant px-4 py-2" name="action" value="back">Back</button><button class="rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary" name="action" value="next">Continue</button></div>
+        </form>
+        {% elif step == 3 %}
+        <h2 class="text-xl font-bold text-on-surface">Paystack payout bank</h2>
+        <p class="mt-1 text-sm text-on-surface-variant">Resolve the account name with Paystack, check it carefully, then confirm it.</p>
+        {% if resolved_account %}
+        <div class="mt-5 rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-900"><p class="font-semibold">Account name: {{ resolved_account.account_name }}</p><p class="mt-1">Account ending {{ resolved_account.account_number|slice:'-4:' }}</p></div>
+        <form method="post" class="mt-4 flex flex-wrap items-center justify-between gap-3">
+            {% csrf_token %}<input type="hidden" name="action" value="confirm_bank"><input type="hidden" name="confirmed_account_name" value="{{ resolved_account.account_name }}">
+            <button class="rounded-lg border border-outline-variant px-4 py-2" name="action" value="back">Back</button><button class="rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary" type="submit">Confirm account and continue</button>
+        </form>
+        {% else %}
+        <form method="post" class="mt-6 space-y-4">
+            {% csrf_token %}<input type="hidden" name="action" value="resolve">
+            <label class="block text-sm font-medium text-on-surface">Search banks<input id="bank-search" type="search" autocomplete="off" placeholder="Search by bank name" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5"></label>
+            <label class="block text-sm font-medium text-on-surface">Bank<select id="bank-select" name="bank_code" required class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5"><option value="">Choose a bank</option>{% for bank in banks %}<option value="{{ bank.code }}" data-bank-name="{{ bank.name|lower }}" {% if selected_bank_code == bank.code %}selected{% endif %}>{{ bank.name }}</option>{% endfor %}</select></label>
+            <label class="block text-sm font-medium text-on-surface">Account number<input name="account_number" required inputmode="numeric" value="{{ vendor.bank_account_number }}" autocomplete="off" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5"></label>
+            <div class="flex justify-between"><button class="rounded-lg border border-outline-variant px-4 py-2" formnovalidate name="action" value="back">Back</button><button class="rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary" type="submit">Resolve with Paystack</button></div>
+        </form>
+        <script>
+            const bankSearch = document.getElementById('bank-search');
+            const bankSelect = document.getElementById('bank-select');
+            bankSearch.addEventListener('input', () => {
+                const query = bankSearch.value.trim().toLowerCase();
+                for (const option of bankSelect.options) {
+                    if (option.value) option.hidden = !option.dataset.bankName.includes(query);
+                }
+                if (bankSelect.selectedOptions[0]?.hidden) bankSelect.value = '';
+            });
+        </script>
+        {% endif %}
+        {% elif step == 4 %}
+        <h2 class="text-xl font-bold text-on-surface">Vendor policy</h2>
+        <p class="mt-3 leading-relaxed text-on-surface-variant">{{ terms }}</p>
+        <form method="post" class="mt-6">
+            {% csrf_token %}<input type="hidden" name="action" value="next">
+            <label class="flex items-start gap-3 text-sm text-on-surface"><input class="mt-1" type="checkbox" name="accept_vendor_terms" value="yes" required><span>I have read and accept the vendor policy.</span></label>
+            {% if errors.accept_vendor_terms %}<p class="mt-2 text-sm text-red-700">{{ errors.accept_vendor_terms }}</p>{% endif %}
+            <div class="mt-6 flex justify-between"><button class="rounded-lg border border-outline-variant px-4 py-2" name="action" value="back">Back</button><button class="rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary" type="submit">Continue to review</button></div>
+        </form>
+        {% else %}
+        <h2 class="text-xl font-bold text-on-surface">Review and submit</h2>
+        <dl class="mt-5 divide-y divide-outline-variant text-sm"><div class="grid grid-cols-3 gap-3 py-3"><dt class="font-semibold">Account</dt><dd class="col-span-2">{{ request.user.get_full_name }} · {{ request.user.email }}</dd></div><div class="grid grid-cols-3 gap-3 py-3"><dt class="font-semibold">Store</dt><dd class="col-span-2">{{ vendor.business_name }}{% if vendor.business_description %}<br>{{ vendor.business_description }}{% endif %}</dd></div><div class="grid grid-cols-3 gap-3 py-3"><dt class="font-semibold">Payout</dt><dd class="col-span-2">{{ vendor.bank_account_name }} · ending {{ vendor.bank_account_number|slice:'-4:' }}</dd></div><div class="grid grid-cols-3 gap-3 py-3"><dt class="font-semibold">Policy</dt><dd class="col-span-2">Accepted</dd></div></dl>
+        <form method="post" class="mt-6 flex justify-between">{% csrf_token %}<button class="rounded-lg border border-outline-variant px-4 py-2" name="action" value="back">Back</button><button class="rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary" name="action" value="submit">Submit vendor profile</button></form>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

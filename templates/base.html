@@ -1,27 +1,56 @@
+{% load static %}
 <!DOCTYPE html>
 <html class="light" lang="en">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>{% block title %}TradeZone{% endblock %}</title>
-    <!-- Material Symbols -->
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com" rel="preconnect"/>
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="{% static 'buyer-tour.css' %}?v=4"/>
+    <script defer src="{% static 'buyer-tour.js' %}?v=4"></script>
+    {% block extra_head %}{% endblock %}
+    <script>
+        try {
+            if (localStorage.getItem('tradezone-theme') === 'dark') {
+                document.documentElement.classList.replace('light', 'dark');
+            }
+        } catch (error) {}
+    </script>
+    <!-- Material Symbols & Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet"/>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 1;
+        :root {
+            --primary: #0059bb; --outline: #717786; --on-background: #1c1b1b;
+            --surface-variant: #e5e2e1; --on-surface: #1c1b1b; --surface-container-low: #f6f3f2;
+            --surface-dim: #dcd9d9; --inverse-primary: #adc7ff; --on-secondary: #ffffff;
+            --on-primary-container: #fefcff; --on-primary: #ffffff; --secondary: #9f4200;
+            --outline-variant: #c1c6d7; --surface: #fcf9f8; --inverse-surface: #313030;
+            --background: #fcf9f8; --surface-bright: #fcf9f8; --primary-container: #0070ea;
+            --on-surface-variant: #414754; --surface-container: #f0edec;
         }
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
+        html.dark {
+            --primary: #78adff; --outline: #7c8494; --on-background: #e7e9ef;
+            --surface-variant: #343842; --on-surface: #e7e9ef; --surface-container-low: #252932;
+            --surface-dim: #17191f; --inverse-primary: #9dc5ff; --on-secondary: #17191f;
+            --on-primary-container: #eff5ff; --on-primary: #0b1d38; --secondary: #ffb48a;
+            --outline-variant: #414650; --surface: #1f222a; --inverse-surface: #e7e9ef;
+            --background: #17191f; --surface-bright: #292d36; --primary-container: #2b5fa8;
+            --on-surface-variant: #bbc1cf; --surface-container: #292d36;
         }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        .brand-logo { color: var(--primary); }
+        .brand-logo-mark { color: var(--secondary); }
+        html.dark .brand-logo { color: #d5dae4; }
+        html.dark .brand-logo-mark { color: #99a4b5; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media (min-width: 768px) {
+            #sidebar:not(.is-expanded) { width: 4rem; padding-left: .5rem; padding-right: .5rem; }
+            #sidebar:not(.is-expanded) .nav-label { display: none; }
+            #sidebar:not(.is-expanded) .nav-item { justify-content: center; padding-left: .5rem; padding-right: .5rem; }
+            #sidebar:not(.is-expanded) #sidebar-links,
+            #sidebar:not(.is-expanded) .nav-item.mt-auto { display: none; }
         }
     </style>
     <script id="tailwind-config">
@@ -29,150 +58,133 @@
           darkMode: "class",
           theme: {
             extend: {
-              "colors": {
-                "primary": "#0059bb",
-                "outline": "#717786",
-                "on-background": "#1c1b1b",
-                "surface-variant": "#e5e2e1",
-                "on-surface": "#1c1b1b",
-                "surface-container-low": "#f6f3f2",
-                "surface-dim": "#dcd9d9",
-                "inverse-primary": "#adc7ff",
-                "on-secondary": "#ffffff",
-                "on-primary-container": "#fefcff",
-                "on-primary": "#ffffff",
-                "secondary": "#9f4200",
-                "outline-variant": "#c1c6d7",
-                "surface": "#fcf9f8",
-                "inverse-surface": "#313030",
-                "background": "#fcf9f8",
-                "surface-bright": "#fcf9f8",
-                "tertiary-fixed": "#69ff87",
-                "secondary-fixed-dim": "#ffb692",
-                "primary-container": "#0070ea",
-                "secondary-fixed": "#ffdbcb",
-                "primary-fixed-dim": "#adc7ff",
-                "on-error-container": "#93000a",
-                "surface-tint": "#005bc0",
-                "inverse-on-surface": "#f3f0ef",
-                "secondary-container": "#fd6c00",
-                "surface-container-highest": "#e5e2e1",
-                "surface-container-high": "#ebe7e7",
-                "tertiary-container": "#008735",
-                "on-secondary-fixed-variant": "#7a3000",
-                "on-tertiary-container": "#f7fff2",
-                "tertiary": "#006b29",
-                "on-secondary-container": "#562000",
-                "on-tertiary-fixed": "#002108",
-                "on-error": "#ffffff",
-                "surface-container-lowest": "#ffffff",
-                "on-tertiary-fixed-variant": "#00531e",
-                "primary-fixed": "#d8e2ff",
-                "on-primary-fixed-variant": "#004493",
-                "on-secondary-fixed": "#341100",
-                "error": "#ba1a1a",
-                "tertiary-fixed-dim": "#3ce36a",
-                "on-tertiary": "#ffffff",
-                "on-surface-variant": "#414754",
-                "error-container": "#ffdad6",
-                "surface-container": "#f0edec",
-                "on-primary-fixed": "#001a41"
+              colors: {
+                primary: "var(--primary)", outline: "var(--outline)", "on-background": "var(--on-background)",
+                "surface-variant": "var(--surface-variant)", "on-surface": "var(--on-surface)", "surface-container-low": "var(--surface-container-low)",
+                "surface-dim": "var(--surface-dim)", "inverse-primary": "var(--inverse-primary)", "on-secondary": "var(--on-secondary)",
+                "on-primary-container": "var(--on-primary-container)", "on-primary": "var(--on-primary)", secondary: "var(--secondary)",
+                "outline-variant": "var(--outline-variant)", surface: "var(--surface)", "inverse-surface": "var(--inverse-surface)",
+                background: "var(--background)", "surface-bright": "var(--surface-bright)", "primary-container": "var(--primary-container)",
+                "on-surface-variant": "var(--on-surface-variant)", "surface-container": "var(--surface-container)"
               },
-              "borderRadius": {
-                "DEFAULT": "0.25rem",
-                "lg": "0.5rem",
-                "xl": "0.75rem",
-                "full": "9999px"
-              },
-              "spacing": {
-                "xs": "4px",
-                "md": "16px",
-                "lg": "24px",
-                "base": "4px",
-                "xl": "40px",
-                "margin-desktop": "64px",
-                "margin-mobile": "16px",
-                "gutter": "20px",
-                "sm": "8px"
-              },
-              "fontFamily": {
-                "title-lg": ["Inter"],
-                "label-md": ["Inter"],
-                "headline-md": ["Poppins"],
-                "button": ["Inter"],
-                "headline-lg": ["Poppins"],
-                "headline-lg-mobile": ["Poppins"],
-                "display-lg": ["Poppins"],
-                "body-md": ["Inter"],
-                "body-lg": ["Inter"]
-              },
-              "fontSize": {
-                "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
-                "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
-                "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
-                "button": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
-                "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
-                "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
-                "display-lg": ["48px", { "lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
-                "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
-                "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+              fontFamily: {
+                "title-lg": ["Inter"], "label-md": ["Inter"], "headline-md": ["Poppins"],
+                "button": ["Inter"], "body-md": ["Inter"]
               }
             }
           }
         };
     </script>
 </head>
-<body class="bg-background text-on-background font-body-md antialiased pb-[80px] md:pb-0">
+<body class="bg-background text-on-background font-body-md antialiased">
+    <div id="sidebar-overlay" class="fixed inset-0 z-[60] hidden bg-black/40 md:hidden"></div>
+    {% with current_name=request.resolver_match.url_name %}
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-[70] flex w-[162px] -translate-x-full flex-col border-r border-outline-variant bg-surface px-4 py-5 text-on-surface shadow-xl transition-[transform,width] duration-200 md:translate-x-0 md:shadow-none">
+        <nav class="space-y-2 pt-2" aria-label="Primary navigation">
+            <button id="sidebar-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" class="nav-item flex w-full items-center gap-3 rounded-xl px-3 py-3 font-medium text-primary hover:bg-surface-container-low"><span class="material-symbols-outlined">menu</span><span class="nav-label">Menu</span></button>
+            <div id="sidebar-links" class="space-y-2">
+                <a id="nav-home" data-tour-nav="Home" class="nav-item flex items-center gap-3 rounded-xl px-3 py-3 font-medium {% if current_name == 'home' %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-primary{% endif %}" href="{% url 'home' %}"><span class="material-symbols-outlined">home</span><span class="nav-label">Home</span></a>
+                {% if account_role == 'seller' %}
+                <a id="nav-sell" data-tour-nav="Sell" class="nav-item flex items-center gap-3 rounded-xl px-3 py-3 font-medium {% if current_name == 'sell' %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-primary{% endif %}" href="{% url 'sell' %}"><span class="material-symbols-outlined">add_box</span><span class="nav-label">Sell</span></a>
+                {% else %}
+                <a id="nav-become-seller" data-tour-nav="Become a Seller" class="nav-item flex items-center gap-3 rounded-xl px-3 py-3 font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-primary" href="{% if request.user.is_authenticated %}{% url 'vendors:onboarding' %}{% else %}{% url 'signup' %}?role=seller{% endif %}"><span class="material-symbols-outlined">storefront</span><span class="nav-label">Become a Seller</span></a>
+                {% endif %}
+                <a id="nav-cart" data-tour-nav="Cart" class="nav-item flex items-center gap-3 rounded-xl px-3 py-3 font-medium {% if current_name == 'cart' %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-primary{% endif %}" href="{% url 'cart' %}"><span class="material-symbols-outlined">shopping_cart</span><span class="nav-label">Cart</span></a>
+                <a id="nav-profile" data-tour-nav="Profile and Orders" class="nav-item flex items-center gap-3 rounded-xl px-3 py-3 font-medium {% if current_name == 'profile' %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-primary{% endif %}" href="{% url 'profile' %}"><span class="material-symbols-outlined">person</span><span class="nav-label">Profile</span></a>
+            </div>
+        </nav>
+        {% if request.user.is_authenticated and request.user.is_staff %}
+        <a class="nav-item mt-auto flex items-center gap-3 rounded-xl px-3 py-3 font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-primary" href="https://github.com/MobyKane/Antigravity-portfolio" target="_blank" rel="noopener"><span class="material-symbols-outlined">code</span><span class="nav-label">Portfolio</span></a>
+        {% endif %}
+    </aside>
+    {% endwith %}
     <!-- TopAppBar -->
-    <header class="docked full-width top-0 sticky z-50 bg-surface dark:bg-inverse-surface shadow-sm dark:shadow-none flex justify-between items-center px-margin-mobile md:px-margin-desktop py-md w-full">
-        <button aria-label="Menu" class="text-primary dark:text-inverse-primary hover:bg-surface-variant dark:hover:bg-on-surface-variant p-2 rounded-full transition-colors duration-200">
-            <span class="material-symbols-outlined" data-icon="menu">menu</span>
+    <header id="top-bar" class="sticky top-0 z-50 flex w-full items-center justify-between bg-surface px-4 py-3 shadow-sm md:pl-24 md:pr-16">
+        <button id="sidebar-toggle" data-tour-menu-button aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" class="text-primary hover:bg-surface-variant p-2 rounded-full transition-colors md:hidden">
+            <span class="material-symbols-outlined">menu</span>
         </button>
-        <div class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary flex items-center gap-2">
-            <span class="material-symbols-outlined text-secondary text-3xl" data-icon="shopping_bag">shopping_bag</span>
+        <div class="brand-logo font-headline-md text-xl font-bold flex items-center gap-2">
+            <span class="brand-logo-mark material-symbols-outlined text-2xl">shopping_bag</span>
             <span>TradeZone</span>
         </div>
-        <button aria-label="Cart" class="text-primary dark:text-inverse-primary hover:bg-surface-variant dark:hover:bg-on-surface-variant p-2 rounded-full transition-colors duration-200">
-            <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
-        </button>
+        <div class="flex items-center gap-1">
+            <button id="theme-toggle" type="button" aria-label="Enable dark theme" class="text-primary hover:bg-surface-variant p-2 rounded-full transition-colors">
+                <span id="theme-icon" class="material-symbols-outlined">dark_mode</span>
+            </button>
+            <a href="{% url 'cart' %}" aria-label="Cart" class="text-primary hover:bg-surface-variant p-2 rounded-full transition-colors relative">
+                <span class="material-symbols-outlined">shopping_cart</span>
+            </a>
+        </div>
     </header>
-    <main class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-lg space-y-xl">
-        {% block content %}
-        {% endblock %}
+
+    <main id="page-content" class="mx-auto max-w-[1440px] space-y-6 px-4 py-6 md:ml-16 md:px-16">
+        {% block content %}{% endblock %}
     </main>
-    <!-- BottomNavBar (Mobile Only) -->
-    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface dark:bg-inverse-surface border-t border-outline-variant dark:border-outline pb-safe pt-2 shadow-lg dark:shadow-none hidden md:hidden shadow-[0px_-4px_20px_rgba(0,0,0,0.05)]" style="display: flex;">
-        <!-- Home -->
-        <a class="flex flex-col items-center justify-center bg-primary-container dark:bg-secondary text-on-primary-container dark:text-on-secondary rounded-2xl px-4 py-1 scale-95 active:scale-90 transition-transform" href="{% url 'home' %}">
-            <span class="material-symbols-outlined" data-icon="home" data-weight="fill">home</span>
-            <span class="font-label-md text-label-md mt-1">Home</span>
-        </a>
-        <!-- Categories (List Items) -->
-        <a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:text-primary dark:hover:text-inverse-primary scale-95 active:scale-90 transition-transform" href="{% url 'list_item' %}">
-            <span class="material-symbols-outlined" data-icon="category">category</span>
-            <span class="font-label-md text-label-md mt-1">Categories</span>
-        </a>
-        <!-- Sell (Product Detail) -->
-        <a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:text-primary dark:hover:text-inverse-primary scale-95 active:scale-90 transition-transform" href="{% url 'product_detail' %}">
-            <span class="material-symbols-outlined" data-icon="add_box">add_box</span>
-            <span class="font-label-md text-label-md mt-1">Sell</span>
-        </a>
-        <!-- Cart (Checkout) -->
-        <a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:text-primary dark:hover:text-inverse-primary scale-95 active:scale-90 transition-transform relative" href="{% url 'checkout' %}">
-            <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
-            <span class="font-label-md text-label-md mt-1">Cart</span>
-            <span class="absolute top-1 right-2 w-2 h-2 bg-secondary rounded-full"></span>
-        </a>
-        <!-- Profile -->
-        <a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-4 py-1 hover:text-primary dark:hover:text-inverse-primary scale-95 active:scale-90 transition-transform" href="#">
-            <span class="material-symbols-outlined" data-icon="person">person</span>
-            <span class="font-label-md text-label-md mt-1">Profile</span>
-        </a>
-        <!-- Developer Portfolio -->
-        <a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-90 transition-transform" href="https://github.com/MobyKane/Antigravity-portfolio" target="_blank">
-            <span class="material-symbols-outlined">code</span>
-            <span class="font-label-md text-label-md mt-1">Portfolio</span>
-        </a>
-    </nav>
+    <div id="buyer-tour" class="buyer-tour" hidden data-autostart="{{ buyer_tour_autostart|yesno:'true,false' }}" data-empty-catalog="{% if request.resolver_match.url_name == 'home' and not products %}true{% else %}false{% endif %}" data-complete-url="{% url 'buyer_tour_complete' %}" data-csrf="{{ csrf_token }}" aria-hidden="true">
+        <form class="hidden" aria-hidden="true">{% csrf_token %}</form>
+        <div class="buyer-tour__shade" data-tour-close></div>
+        <div class="buyer-tour__spotlight" aria-hidden="true"></div>
+        <section class="buyer-tour__card" role="dialog" aria-modal="true" aria-labelledby="buyer-tour-title" aria-describedby="buyer-tour-copy" tabindex="-1">
+            <div class="buyer-tour__topline"><span id="buyer-tour-progress" aria-live="polite"></span><button type="button" class="buyer-tour__icon" data-tour-close aria-label="Close tour">×</button></div>
+            <div id="buyer-tour-announcement" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+            <div class="buyer-tour__illustration" aria-hidden="true"><span class="material-symbols-outlined">storefront</span></div>
+            <h2 id="buyer-tour-title" class="text-xl font-bold text-on-surface"></h2>
+            <p id="buyer-tour-copy" class="mt-2 text-sm leading-relaxed text-on-surface-variant"></p>
+            <div class="buyer-tour__actions">
+                <button type="button" class="buyer-tour__text-button" data-tour-back>Back</button>
+                <div class="flex gap-2"><button type="button" class="buyer-tour__text-button" data-tour-skip>Skip</button><button type="button" class="buyer-tour__next" data-tour-next>Start tour</button></div>
+            </div>
+        </section>
+    </div>
+    <script>
+        const toggle = document.getElementById('sidebar-toggle');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const sidebarMenuToggle = document.getElementById('sidebar-menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const pageContent = document.getElementById('page-content');
+        const topBar = document.getElementById('top-bar');
+        const desktopQuery = window.matchMedia('(min-width: 768px)');
+        const setDesktopSidebar = (expanded) => {
+            sidebar.classList.toggle('is-expanded', expanded);
+            pageContent.classList.toggle('md:ml-16', !expanded);
+            pageContent.classList.toggle('md:ml-[162px]', expanded);
+            topBar.classList.toggle('md:pl-24', !expanded);
+            topBar.classList.toggle('md:pl-[194px]', expanded);
+            sidebarMenuToggle.setAttribute('aria-expanded', String(expanded));
+        };
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+            toggle.setAttribute('aria-expanded', 'false');
+        };
+        toggle.addEventListener('click', () => {
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            sidebar.classList.toggle('-translate-x-full', isOpen);
+            overlay.classList.toggle('hidden', isOpen);
+            toggle.setAttribute('aria-expanded', String(!isOpen));
+        });
+        overlay.addEventListener('click', closeSidebar);
+        const updateThemeToggle = () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            themeIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
+            themeToggle.setAttribute('aria-label', isDark ? 'Enable light theme' : 'Enable dark theme');
+        };
+        updateThemeToggle();
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            document.documentElement.classList.toggle('light', !isDark);
+            try { localStorage.setItem('tradezone-theme', isDark ? 'dark' : 'light'); } catch (error) {}
+            updateThemeToggle();
+        });
+        sidebarMenuToggle.addEventListener('click', () => {
+            if (desktopQuery.matches) {
+                setDesktopSidebar(!sidebar.classList.contains('is-expanded'));
+            } else {
+                closeSidebar();
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load money %}
+
+{% block title %}Shopping Cart - TradeZone{% endblock %}
+
+{% block content %}
+<div class="mb-lg">
+    <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Your Shopping Cart</h1>
+</div>
+
+{% if messages %}
+<div class="mb-6 space-y-2">
+    {% for message in messages %}
+    <div class="p-4 rounded-lg text-sm font-medium {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+    <!-- Cart Items List -->
+    <div class="lg:col-span-8 space-y-lg">
+        <section class="rounded-xl p-md md:p-lg" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+            <div class="flex items-center justify-between mb-md">
+                <h2 class="font-title-lg text-title-lg flex items-center gap-sm text-on-surface">
+                    <span class="material-symbols-outlined text-primary">shopping_cart</span> Cart Items ({{ cart_items|length }})
+                </h2>
+                <a href="{% url 'home' %}" class="font-button text-button text-primary hover:text-primary-container transition-colors">Continue Shopping</a>
+            </div>
+
+            <div class="space-y-md">
+                {% for item in cart_items %}
+                <div id="tour-cart-item" class="flex gap-md pb-md border-b border-outline-variant items-center">
+                    <div class="w-20 h-20 bg-surface-variant rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
+                        {% if item.product.image %}
+                        <img class="w-full h-full object-cover" src="{{ item.product.image.url }}" alt="{{ item.product.name }}"/>
+                        {% else %}
+                        <span class="material-symbols-outlined text-outline text-3xl">inventory_2</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-body-lg text-body-lg font-medium text-on-surface">{{ item.product.name }}</h3>
+                            <p class="font-label-md text-label-md text-on-surface-variant mt-xs">Vendor: {{ item.product.vendor.business_name }}</p>
+                        </div>
+                        <div class="flex flex-wrap justify-between items-center mt-sm gap-3">
+                            <form method="post" action="{% url 'update_cart_item' item.id %}" class="flex items-center gap-2" aria-label="Change quantity for {{ item.product.name }}">
+                                {% csrf_token %}<label class="text-sm text-on-surface-variant" for="quantity-{{ item.id }}">Qty</label>
+                                <input id="quantity-{{ item.id }}" name="quantity" type="number" min="1" max="999" value="{{ item.quantity }}" class="w-20 rounded-md border border-outline-variant bg-surface px-2 py-1 text-on-surface"/>
+                                <button type="submit" class="rounded-md border border-outline-variant px-2 py-1 text-sm font-medium text-primary">Update</button>
+                            </form>
+                            <div class="flex items-center gap-4">
+                                <span class="font-title-lg text-title-lg text-on-surface">{{ item.get_total_price_kobo|naira }}</span>
+                                <a href="{% url 'remove_from_cart' item.id %}" class="text-error hover:text-red-700 transition-colors p-1" title="Remove item">
+                                    <span class="material-symbols-outlined text-lg">delete</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="py-12 text-center">
+                    <span class="material-symbols-outlined text-5xl text-outline mb-2">shopping_bag</span>
+                    <p class="text-on-surface font-medium text-lg">Your cart is empty.</p>
+                    <a href="{% url 'home' %}" class="inline-block mt-4 bg-primary text-on-primary px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-primary-container transition-colors">
+                        Start Shopping
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <!-- Cart Summary Sidebar -->
+    <div class="lg:col-span-4">
+        <div class="rounded-xl p-md md:p-lg sticky top-[100px]" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+            <h2 class="font-title-lg text-title-lg text-on-surface mb-md">Order Summary</h2>
+            <div class="space-y-sm text-on-surface-variant font-body-md text-body-md border-b border-outline-variant pb-md mb-md">
+                <div class="flex justify-between">
+                    <span>Subtotal ({{ cart_items|length }} items)</span>
+                    <span class="text-on-surface font-medium">{{ subtotal_kobo|naira }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Estimated Shipping</span>
+                    <span class="text-on-surface font-medium">{{ shipping_kobo|naira }}</span>
+                </div>
+            </div>
+            <div class="flex justify-between items-end mb-lg">
+                <span class="font-title-lg text-title-lg text-on-surface">Total</span>
+                <span class="font-headline-md text-headline-md text-primary">{{ total_kobo|naira }}</span>
+            </div>
+            {% if cart_items %}
+            <a id="tour-checkout" href="{% url 'checkout' %}" class="w-full bg-primary hover:bg-primary-container text-on-primary font-button text-button py-3 rounded-lg shadow-md transition-all active:scale-[0.98] flex justify-center items-center gap-sm text-center">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lock</span> Proceed to Checkout
+            </a>
+            {% else %}
+            <button disabled class="w-full bg-surface-variant text-on-surface-variant font-button text-button py-3 rounded-lg cursor-not-allowed text-center">
+                Cart is Empty
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

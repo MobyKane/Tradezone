@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load money %}
+
+{% block title %}{{ category }} Subcategory - TradeZone{% endblock %}
+
+{% block content %}
+<section class="flex flex-col gap-4 rounded-2xl border border-surface-variant bg-surface p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+    <div>
+        <a href="{% url 'home' %}" class="text-sm text-primary hover:underline">← All subcategories</a>
+        <h1 class="mt-2 font-headline-md text-3xl font-bold text-on-background">{{ category }}</h1>
+        <p class="mt-2 text-on-surface-variant">Browse listings in this subcategory or add your own product.</p>
+    </div>
+    {% if can_sell %}
+    <a href="{% url 'list_item' %}?category={{ category|urlencode }}" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-medium text-on-primary transition-colors hover:bg-primary-container">
+        <span class="material-symbols-outlined">add</span>Add {{ category }} product
+    </a>
+    {% endif %}
+</section>
+
+{% if fashion_section %}
+<nav aria-label="Breadcrumb" class="mt-5 flex items-center gap-2 text-sm text-on-surface-variant">
+    <a href="{% url 'subcategory' 'fashion' %}" class="text-primary hover:underline">Fashion</a>
+    <span class="material-symbols-outlined text-base">chevron_right</span>
+    <span class="font-medium text-on-surface">{{ fashion_section.name }}</span>
+</nav>
+{% elif category == 'Fashion' and fashion_sections %}
+<nav aria-label="Fashion sections" class="mt-5 flex flex-wrap gap-3">
+    {% for section in fashion_sections %}
+    <a href="{% url 'fashion_section' section.slug %}" class="rounded-lg border border-outline-variant bg-surface px-4 py-2 text-sm font-medium text-on-surface hover:border-primary hover:text-primary">{{ section.name }}</a>
+    {% endfor %}
+</nav>
+{% endif %}
+{% if category_sections and category != 'Fashion' %}
+<nav aria-label="Building Materials subcategories" class="mt-5 flex flex-wrap gap-3">
+    {% for section in category_sections %}
+    <a href="{% url 'category_section' 'building-materials' section.slug %}" class="rounded-lg border border-outline-variant bg-surface px-4 py-2 text-sm font-medium text-on-surface hover:border-primary hover:text-primary">{{ section.name }}</a>
+    {% endfor %}
+</nav>
+{% endif %}
+
+<section class="mt-8">
+    {% if products %}
+    <div class="grid grid-cols-2 gap-gutter md:grid-cols-3 lg:grid-cols-4">
+        {% for product in products %}
+        <article class="group relative flex flex-col overflow-hidden rounded-xl border border-surface-variant bg-surface shadow-sm transition-shadow hover:shadow-lg">
+            {% if request.user.is_staff or request.user.id == product.vendor.user_id %}
+            <div class="absolute right-2 top-2 z-10 flex gap-1">
+                <a href="{% url 'edit_product' product.id %}" aria-label="Edit {{ product.name }}" class="rounded-lg bg-surface/95 p-2 text-primary shadow-sm transition-colors hover:bg-surface-container-low">
+                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                </a>
+                <form method="POST" action="{% url 'delete_product' product.id %}" onsubmit="return confirm('Delete {{ product.name|escapejs }}?');">
+                    {% csrf_token %}
+                    <button type="submit" aria-label="Delete {{ product.name }}" class="rounded-lg bg-surface/95 p-2 text-error shadow-sm transition-colors hover:bg-red-50">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            <a href="{% url 'product_detail' product.id %}" class="flex aspect-square items-center justify-center overflow-hidden bg-surface-container-low p-4">
+                {% if product.image %}
+                <img class="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105" src="{{ product.image.url }}" alt="{{ product.name }}"/>
+                {% else %}
+                <span class="material-symbols-outlined text-5xl text-outline">inventory_2</span>
+                {% endif %}
+            </a>
+            <div class="flex flex-1 flex-col p-4">
+                <a href="{% url 'product_detail' product.id %}" class="line-clamp-2 font-semibold text-on-surface hover:text-primary">{{ product.name }}</a>
+                <p class="mt-2 text-sm text-on-surface-variant">{{ product.vendor.business_name }}</p>
+                {% if product.category == 'Building Materials' %}
+                <p class="mt-2 text-xs text-on-surface-variant">{% if product.unit_of_sale %}{{ product.unit_of_sale }}{% endif %}{% if product.quantity_per_carton %} · {{ product.quantity_per_carton }} per carton{% endif %}{% if product.dimensions %} · {{ product.dimensions }}{% endif %}</p>
+                {% endif %}
+                <p class="mt-3 font-bold text-primary">{{ product.current_price_kobo|naira }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="rounded-xl border border-dashed border-outline-variant bg-surface-container-low p-10 text-center">
+        <span class="material-symbols-outlined text-5xl text-outline">inventory_2</span>
+        <h2 class="mt-3 text-xl font-bold text-on-surface">No products found</h2>
+        <p class="mt-2 text-on-surface-variant">This subcategory is currently empty.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

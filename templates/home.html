@@ -1,207 +1,151 @@
 {% extends 'base.html' %}
+{% load money %}
 
 {% block title %}TradeZone - Home Discovery{% endblock %}
 
 {% block content %}
-<!-- Search Bar -->
-<section class="w-full">
-<div class="relative flex items-center w-full max-w-2xl mx-auto">
-<span class="material-symbols-outlined absolute left-4 text-outline" data-icon="search">search</span>
-<input class="w-full pl-12 pr-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm font-body-lg text-body-lg text-on-surface placeholder:text-on-surface-variant" placeholder="Search products, brands, and vendors..." type="text"/>
+{% if messages %}
+<div class="mb-6 space-y-2">
+    {% for message in messages %}
+    <div class="p-4 rounded-lg text-sm font-medium {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
 </div>
+{% endif %}
+
+{% if request.user.is_staff %}
+<div class="flex justify-end"><a href="{% url 'fashion_review_queue' %}" class="inline-flex items-center gap-2 rounded-lg border border-outline-variant bg-surface px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[18px]">fact_check</span>Fashion review queue</a></div>
+{% endif %}
+
+{% if buyer_tour_prompt %}
+<aside id="buyer-tour-prompt" hidden class="flex flex-wrap items-center justify-between gap-3 border-y border-primary/30 bg-primary/5 px-4 py-3">
+    <p class="text-sm font-medium text-on-surface">New to TradeZone? Take a quick tour.</p>
+    <div class="flex items-center gap-3"><button type="button" data-tour-start class="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-on-primary">Take a quick tour</button><button type="button" data-tour-dismiss class="rounded-md px-3 py-2 text-sm text-on-surface-variant hover:bg-surface-container-low">Not now</button></div>
+</aside>
+{% endif %}
+
+<!-- Search Bar -->
+<section id="tour-search" class="w-full">
+    <form method="GET" action="{% url 'home' %}" class="relative flex items-center w-full max-w-2xl mx-auto">
+        <span class="material-symbols-outlined absolute left-4 text-outline" data-icon="search">search</span>
+        <input name="q" value="{{ query }}" class="w-full pl-12 pr-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm font-body-lg text-body-lg text-on-surface placeholder:text-on-surface-variant" placeholder="Search products, brands, and vendors..." type="text"/>
+    </form>
 </section>
 
 <!-- Category Chips -->
-<section class="w-full">
-<div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
-<button class="whitespace-nowrap px-4 py-2 rounded-full bg-primary text-on-primary font-button text-button shadow-sm hover:shadow-md transition-shadow">All Categories</button>
-<button class="whitespace-nowrap px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Electronics</button>
-<button class="whitespace-nowrap px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Fashion</button>
-<button class="whitespace-nowrap px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Home &amp; Garden</button>
-<button class="whitespace-nowrap px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Sports</button>
-<button class="whitespace-nowrap px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Automotive</button>
-<button class="whitespace-nowrap px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Toys &amp; Games</button>
-</div>
+<section id="tour-categories" class="w-full">
+    <div class="mb-3 flex items-center justify-between">
+        <h2 class="font-title-lg text-on-background">Subcategories</h2>
+        <span class="text-sm text-on-surface-variant">Browse products by type</span>
+    </div>
+    <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+        <a href="{% url 'home' %}" class="whitespace-nowrap px-4 py-2 rounded-full {% if not selected_category %}bg-primary text-on-primary{% else %}bg-surface-container-high text-on-surface{% endif %} font-button text-button shadow-sm hover:shadow-md transition-all">All Categories</a>
+        <a href="{% url 'subcategory' 'electronics' %}" class="whitespace-nowrap px-4 py-2 rounded-full {% if selected_category == 'Electronics' %}bg-primary text-on-primary{% else %}bg-surface-container-high text-on-surface{% endif %} font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Electronics</a>
+        <a href="{% url 'subcategory' 'fashion' %}" class="whitespace-nowrap px-4 py-2 rounded-full {% if selected_category == 'Fashion' %}bg-primary text-on-primary{% else %}bg-surface-container-high text-on-surface{% endif %} font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Fashion</a>
+        <a href="{% url 'subcategory' 'home-garden' %}" class="whitespace-nowrap px-4 py-2 rounded-full {% if selected_category == 'Home & Garden' %}bg-primary text-on-primary{% else %}bg-surface-container-high text-on-surface{% endif %} font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Home &amp; Garden</a>
+        <a href="{% url 'subcategory' 'sports' %}" class="whitespace-nowrap px-4 py-2 rounded-full {% if selected_category == 'Sports' %}bg-primary text-on-primary{% else %}bg-surface-container-high text-on-surface{% endif %} font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Sports</a>
+        <a href="{% url 'subcategory' 'building-materials' %}" class="whitespace-nowrap px-4 py-2 rounded-full {% if selected_category == 'Building Materials' %}bg-primary text-on-primary{% else %}bg-surface-container-high text-on-surface{% endif %} font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors">Building Materials</a>
+    </div>
 </section>
 
 <!-- Hero Banner -->
 <section class="w-full">
-<div class="relative w-full h-[240px] md:h-[400px] rounded-xl overflow-hidden shadow-lg group">
-<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A vibrant, high-energy modern retail promotional banner featuring a dynamic, sleek geometric composition in primary blue and energetic orange, with abstract floating product shapes, conveying a fast, secure, and professional e-commerce experience. Bright, studio lighting, clean lines, corporate modern aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCsjQM47yiEVybu1crq3lPvbQqdAcqz3GJ3ggzqbpoHj9_8Z_nv8A8zhfH6UIZZqoc3n9hgYjx-LmyLdXvltAI_WQDACmg6_F9991nLYmNtg9XqXmFsi8nhGS9-l-UwDo26QsGXDIcaiFfXwBTEsnrA6RadqYR1N-fvFVXD-MRDVDZwEhPNO4jx68b5YgfNBxOOZOxd-dXGEQinJ779NgIg9ISJ-Jh-WHBbH0UIBGzJ1flT_NwNQhQcqg')"></div>
-<div class="absolute inset-0 bg-gradient-to-r from-on-background/80 to-transparent flex items-center p-lg md:p-xl">
-<div class="max-w-md text-on-primary space-y-4">
-<h2 class="font-display-lg text-display-lg font-bold leading-tight">Summer Tech Mega Sale</h2>
-<p class="font-body-lg text-body-lg opacity-90">Up to 40% off on top-rated electronics from verified vendors. Limited time offer.</p>
-<button class="bg-secondary text-on-secondary px-6 py-3 rounded-lg font-button text-button hover:bg-secondary-container transition-colors shadow-md">Shop Now</button>
-</div>
-</div>
-</div>
+    <div class="relative w-full h-[240px] md:h-[400px] rounded-xl overflow-hidden shadow-lg group">
+        <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105 dark:brightness-[0.58] dark:saturate-[0.7]" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCsjQM47yiEVybu1crq3lPvbQqdAcqz3GJ3ggzqbpoHj9_8Z_nv8A8zhfH6UIZZqoc3n9hgYjx-LmyLdXvltAI_WQDACmg6_F9991nLYmNtg9XqXmFsi8nhGS9-l-UwDo26QsGXDIcaiFfXwBTEsnrA6RadqYR1N-fvFVXD-MRDVDZwEhPNO4jx68b5YgfNBxOOZOxd-dXGEQinJ779NgIg9ISJ-Jh-WHBbH0UIBGzJ1flT_NwNQhQcqg')"></div>
+        <div class="absolute inset-0 flex items-center bg-gradient-to-r from-on-background/80 to-transparent p-lg dark:from-[#0B0D13]/95 dark:via-[#0B0D13]/55 dark:to-transparent md:p-xl">
+            <div class="max-w-md space-y-4 text-slate-100">
+                <h2 class="font-display-lg text-display-lg font-bold leading-tight">Multi-Vendor E-Commerce Platform</h2>
+                <p class="font-body-lg text-body-lg opacity-90">Discover top-rated products from verified vendors across multiple categories.</p>
+                {% if can_sell %}
+                <a href="{% url 'list_item' %}" class="inline-block bg-secondary text-on-secondary px-6 py-3 rounded-lg font-button text-button hover:bg-secondary-container transition-colors shadow-md">Sell a Product</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Onboarding Notes -->
+<section class="w-full">
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 shadow-sm">
+        <h3 class="text-lg font-bold text-amber-900 mb-2">Quick onboarding</h3>
+        <ul class="space-y-2 text-sm text-amber-900">
+            <li>• Guests can buy or sell up to 2 times before creating an account.</li>
+            <li>• After the 2nd transaction, signup is required before continuing.</li>
+            <li>• If you are logged in and inactive for more than 24 hours, you’ll need to log back in before buying or selling again.</li>
+        </ul>
+    </div>
 </section>
 
 <!-- Trending Products Grid -->
 <section class="w-full">
-<div class="flex justify-between items-end mb-6">
-<h3 class="font-headline-md text-headline-md text-on-background">Trending Now</h3>
-<a class="text-primary font-button text-button hover:underline flex items-center gap-1" href="#">View All <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span></a>
-</div>
-<!-- Grid Layout -->
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter">
-<!-- Product Card 1 -->
-<div class="bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-surface-variant flex flex-col group">
-<div class="relative aspect-square overflow-hidden bg-surface-container-lowest p-4 flex items-center justify-center">
-<img class="object-contain w-full h-full group-hover:scale-105 transition-transform duration-300" data-alt="A sleek, modern pair of premium wireless noise-canceling over-ear headphones in matte black, resting on a clean white surface with subtle soft studio lighting highlighting its high-end build quality and brand trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZ-kePgJFTGgW-mJfdmFhaz0d0H6eQQtVLSPZLq0MDI3ttvxYUPwvHYOS-lckyeEALbxm556DH3rGJShWh3hb3dKpl7t-PrEWxChyGBZVKkdx-Vi1qj3QtYikS9pktXqRTU_cDIjg-vzG1XReVT6zQHeOnEorvSQzSVniOzIB9vZVIGfdhl-N-7PMSU98dpdpaRSYoaUtrAwkG6vs4R0KAjlD_c19M0-LvI3eUCADLaqEa1tu_jlEUTw"/>
-<div class="absolute top-2 right-2 bg-surface-container-lowest/80 backdrop-blur-sm p-1 rounded-full text-on-surface-variant hover:text-secondary cursor-pointer transition-colors shadow-sm">
-<span class="material-symbols-outlined text-[20px]" data-icon="favorite_border">favorite_border</span>
-</div>
-</div>
-<div class="p-4 flex flex-col flex-grow space-y-2 border-t border-surface-variant">
-<div class="flex items-center gap-2 mb-1">
-<span class="bg-surface-container-high px-2 py-0.5 rounded text-xs font-label-md text-on-surface-variant">Electronics</span>
-<div class="flex items-center gap-1 text-tertiary">
-<span class="material-symbols-outlined text-[14px]" data-icon="verified">verified</span>
-<span class="text-xs font-label-md">Pro Vendor</span>
-</div>
-</div>
-<h4 class="font-title-lg text-title-lg text-on-surface line-clamp-2 leading-tight">QuantumX Pro Wireless Headphones</h4>
-<div class="flex items-center gap-1 text-secondary">
-<span class="material-symbols-outlined text-[16px] text-[#FFB400]" data-icon="star">star</span>
-<span class="font-label-md text-label-md text-on-surface-variant">4.8 (124 reviews)</span>
-</div>
-<div class="mt-auto pt-2 flex justify-between items-center">
-<span class="font-headline-md text-[20px] font-bold text-on-background">$249.99</span>
-<button aria-label="Add to Cart" class="bg-primary text-on-primary p-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm">
-<span class="material-symbols-outlined text-[20px]" data-icon="add_shopping_cart">add_shopping_cart</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Product Card 2 -->
-<div class="bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-surface-variant flex flex-col group">
-<div class="relative aspect-square overflow-hidden bg-surface-container-lowest p-4 flex items-center justify-center">
-<img class="object-contain w-full h-full group-hover:scale-105 transition-transform duration-300" data-alt="A professional-grade minimalist mechanical keyboard with customizable RGB backlighting and sleek grey keycaps, positioned on a clean white desk environment, conveying high performance and professional e-commerce quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiLG9aT7EMISSm7D09zlsOeDrJyDS0zcxwvfHTb-u1EpfvHEOoU2yz_YjdXXdym_818IFPLj14_TxY3d2NfzI6vy4wMzCeXfxPTnbhjwcVP72V5Ywohj5dbFKTIEGfICWcQMQZiTeGIUJy9I9nBksz_GRBtorOGl_JF4F6pHNyb8WPyqswG3t08k1PDx4Vtw4YF6XfduRwwS6nKZ6sPAC9nCeR_81EDunhvZNHzee4tl-AugyghMxljz2qy6kiaw"/>
-</div>
-<div class="p-4 flex flex-col flex-grow space-y-2 border-t border-surface-variant">
-<div class="flex items-center gap-2 mb-1">
-<span class="bg-surface-container-high px-2 py-0.5 rounded text-xs font-label-md text-on-surface-variant">Gaming</span>
-</div>
-<h4 class="font-title-lg text-title-lg text-on-surface line-clamp-2 leading-tight">Nova Type Mechanical Keyboard</h4>
-<div class="flex items-center gap-1 text-secondary">
-<span class="material-symbols-outlined text-[16px] text-[#FFB400]" data-icon="star">star</span>
-<span class="font-label-md text-label-md text-on-surface-variant">4.9 (89 reviews)</span>
-</div>
-<div class="mt-auto pt-2 flex justify-between items-center">
-<span class="font-headline-md text-[20px] font-bold text-on-background">$129.50</span>
-<button aria-label="Add to Cart" class="bg-primary text-on-primary p-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm">
-<span class="material-symbols-outlined text-[20px]" data-icon="add_shopping_cart">add_shopping_cart</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Product Card 3 -->
-<div class="bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-surface-variant flex flex-col group">
-<div class="relative aspect-square overflow-hidden bg-surface-container-lowest p-4 flex items-center justify-center">
-<img class="object-contain w-full h-full group-hover:scale-105 transition-transform duration-300" data-alt="A modern, high-performance smartwatch with a sleek metallic bezel and a durable silicone strap, displayed against a stark white background, emphasizing its sharp, vibrant display and premium build quality for a trusted marketplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNk6b0qLrgkDrfXOq3XewpM81CiQuFkQXDcGmZ_8RiBTn81ZNt1p2SU1ohLfUwjsz54iYwja2uLvrBEPKTBhhfVAeUxg25uJb2hXq38hLOlhsNFXYz_4Rx-blQKshIPdlP5Efzi-Sa-gBO-9rQ9shrghAl8PkBGcqKMeDq4mODJjLn8r4qALEn_g6rBdchkOk8danbNIXPIns3mHpzf-2KBP8g6p3RLMEWYKDXySIg3AeZOlx0h9EjoA"/>
-<div class="absolute top-2 left-2 bg-error text-on-error px-2 py-1 rounded text-xs font-bold uppercase tracking-wider">Sale</div>
-</div>
-<div class="p-4 flex flex-col flex-grow space-y-2 border-t border-surface-variant">
-<div class="flex items-center gap-2 mb-1">
-<span class="bg-surface-container-high px-2 py-0.5 rounded text-xs font-label-md text-on-surface-variant">Wearables</span>
-<div class="flex items-center gap-1 text-tertiary">
-<span class="material-symbols-outlined text-[14px]" data-icon="verified">verified</span>
-</div>
-</div>
-<h4 class="font-title-lg text-title-lg text-on-surface line-clamp-2 leading-tight">AeroFit Smart Watch Series 5</h4>
-<div class="flex items-center gap-1 text-secondary">
-<span class="material-symbols-outlined text-[16px] text-[#FFB400]" data-icon="star">star</span>
-<span class="font-label-md text-label-md text-on-surface-variant">4.6 (312 reviews)</span>
-</div>
-<div class="mt-auto pt-2 flex justify-between items-center">
-<div class="flex flex-col">
-<span class="font-headline-md text-[20px] font-bold text-on-background">$199.00</span>
-<span class="text-xs text-on-surface-variant line-through">$249.00</span>
-</div>
-<button aria-label="Add to Cart" class="bg-primary text-on-primary p-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm">
-<span class="material-symbols-outlined text-[20px]" data-icon="add_shopping_cart">add_shopping_cart</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Product Card 4 -->
-<div class="bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-surface-variant flex flex-col group hidden md:flex">
-<div class="relative aspect-square overflow-hidden bg-surface-container-lowest p-4 flex items-center justify-center">
-<img class="object-contain w-full h-full group-hover:scale-105 transition-transform duration-300" data-alt="A compact, stylish mirrorless digital camera with a retro-modern silver and black design, resting on a clean studio surface, projecting high-quality imagery and professional e-commerce trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHK400RJkdfypus0NW1uYkmj2tlAV3lhZfE9qPhw-I8JvE66uNin4TlbD9trLUSb1jUCmKSOK_D5azETRDNCb5BVyclSy4gyayEm-h14JCorwuPlGdbT0Y-Ft-v-kSa7rDEr-0t0ObYV4zSCa_xXg0H0oBruXJfrBUJ7xmLWR1lkWFZCVgV4XmeoAWTLPkzcwck1-567bCBfxhTnb3yj5XDuCpDW62S5o60zYLPQt_gYQhhNUN7sm56w"/>
-</div>
-<div class="p-4 flex flex-col flex-grow space-y-2 border-t border-surface-variant">
-<div class="flex items-center gap-2 mb-1">
-<span class="bg-surface-container-high px-2 py-0.5 rounded text-xs font-label-md text-on-surface-variant">Photography</span>
-</div>
-<h4 class="font-title-lg text-title-lg text-on-surface line-clamp-2 leading-tight">Lumina Mirrorless Camera Body</h4>
-<div class="flex items-center gap-1 text-secondary">
-<span class="material-symbols-outlined text-[16px] text-[#FFB400]" data-icon="star">star</span>
-<span class="font-label-md text-label-md text-on-surface-variant">5.0 (42 reviews)</span>
-</div>
-<div class="mt-auto pt-2 flex justify-between items-center">
-<span class="font-headline-md text-[20px] font-bold text-on-background">$899.99</span>
-<button aria-label="Add to Cart" class="bg-primary text-on-primary p-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm">
-<span class="material-symbols-outlined text-[20px]" data-icon="add_shopping_cart">add_shopping_cart</span>
-</button>
-</div>
-</div>
-</div>
-</div>
+    <div class="flex justify-between items-end mb-6">
+        <h3 class="font-headline-md text-headline-md text-on-background">Product Catalog</h3>
+    </div>
+    
+    <!-- Grid Layout -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter">
+        {% for product in products %}
+        <div class="tour-product-card relative bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-surface-variant flex flex-col group" {% if forloop.first %}id="tour-product-card"{% endif %}>
+            {% if request.user.is_staff or request.user.id == product.vendor.user_id %}
+            <div class="absolute right-2 top-2 z-10 flex gap-1">
+                <a href="{% url 'edit_product' product.id %}" aria-label="Edit {{ product.name }}" class="rounded-lg bg-surface/95 p-2 text-primary shadow-sm transition-colors hover:bg-surface-container-low">
+                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                </a>
+                <form method="POST" action="{% url 'delete_product' product.id %}" onsubmit="return confirm('Delete {{ product.name|escapejs }}?');">
+                    {% csrf_token %}
+                    <button type="submit" aria-label="Delete {{ product.name }}" class="rounded-lg bg-surface/95 p-2 text-error shadow-sm transition-colors hover:bg-red-50">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            <a href="{% url 'product_detail' product.id %}" class="relative aspect-square overflow-hidden bg-surface-container-lowest p-4 flex items-center justify-center">
+                {% if product.image %}
+                <img class="object-contain w-full h-full group-hover:scale-105 transition-transform duration-300" src="{{ product.image.url }}" alt="{{ product.name }}"/>
+                {% else %}
+                <div class="w-full h-full flex flex-col items-center justify-center bg-surface-variant text-on-surface-variant rounded-lg">
+                    <span class="material-symbols-outlined text-4xl">inventory_2</span>
+                    <span class="text-xs mt-1 font-medium">No Image</span>
+                </div>
+                {% endif %}
+            </a>
+            <div class="p-4 flex flex-col flex-grow space-y-2 border-t border-surface-variant">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="bg-surface-container-high px-2 py-0.5 rounded text-xs font-label-md text-on-surface-variant">{{ product.category }}</span>
+                    <span class="text-xs font-label-md text-tertiary flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">verified</span>
+                        {{ product.vendor.business_name }}
+                    </span>
+                </div>
+                <a href="{% url 'product_detail' product.id %}" class="font-title-lg text-title-lg text-on-surface line-clamp-2 leading-tight hover:text-primary transition-colors">
+                    {{ product.name }}
+                </a>
+                <div class="mt-auto pt-2 flex justify-between items-center">
+                    <div>
+                        <span class="font-headline-md text-[20px] font-bold text-on-background">{{ product.current_price_kobo|naira }}</span>
+                        {% if product.discount_price %}
+                        <span class="text-xs text-on-surface-variant line-through ml-1">{{ product.price_kobo|naira }}</span>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'add_to_cart' product.id %}" aria-label="Add to Cart" class="bg-primary text-on-primary p-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center bg-surface rounded-xl border border-surface-variant p-6">
+            <span class="material-symbols-outlined text-5xl text-outline mb-3">search_off</span>
+            <h4 class="text-lg font-bold text-on-surface">No products found</h4>
+            <p class="text-sm text-on-surface-variant mt-1">Be the first to list a product on TradeZone!</p>
+            {% if can_sell %}
+            <a href="{% url 'list_item' %}" class="inline-block mt-4 bg-primary text-on-primary px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-primary-container">
+                Add New Product
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
 </section>
-
-<!-- Featured Vendors Bento -->
-<section class="w-full pt-8">
-<h3 class="font-headline-md text-headline-md text-on-background mb-6">Top Rated Vendors</h3>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<!-- Large Bento Item -->
-<div class="md:col-span-2 bg-surface rounded-xl overflow-hidden shadow-sm border border-surface-variant flex flex-col md:flex-row group cursor-pointer hover:shadow-md transition-shadow">
-<div class="w-full md:w-1/2 h-48 md:h-auto bg-cover bg-center" data-alt="A clean, modern workspace showcasing high-end minimalist office furniture, bathed in bright, natural light, reflecting a professional and trustworthy business environment for an elite vendor profile." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBdj_GygiDSMpL-GFFanPf1sCHH-wO0w3sGiQV3JYbHbbs51Z3Cpluv1j1vhKl_IskXBqFYvmmjMEhvTZ14NEfzcOXzR55tvGgrBrfsJT3JVXSiXU8w7CtwTPz2K28XHPb2GNIaCDBJnTyoEIShDawsK_98n5p7vKelLsvAD-ISGu_zVioXz2YY1xak4pJnEP-glRMV8FnI30mphIgDvbLRUuUw3Zuo6ZXgWkg5GyDj-_qCh-qS-XB27A')"></div>
-<div class="p-6 flex flex-col justify-center w-full md:w-1/2">
-<div class="flex items-center gap-3 mb-4">
-<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xl shadow-inner">
-S
-</div>
-<div>
-<h4 class="font-title-lg text-title-lg text-on-surface font-bold flex items-center gap-1">Studio Modern <span class="material-symbols-outlined text-[16px] text-tertiary" data-icon="verified">verified</span></h4>
-<p class="text-sm text-on-surface-variant font-label-md">Furniture &amp; Decor • 99% Positive</p>
-</div>
-</div>
-<p class="text-body-md font-body-md text-on-surface-variant mb-4">Curated, high-quality modern furniture designed for the contemporary home and office.</p>
-<button class="self-start text-primary font-button text-button border border-primary px-4 py-2 rounded-lg hover:bg-primary hover:text-on-primary transition-colors">Visit Store</button>
-</div>
-</div>
-<!-- Small Bento Item -->
-<div class="bg-surface rounded-xl p-6 shadow-sm border border-surface-variant flex flex-col items-center text-center group cursor-pointer hover:shadow-md transition-shadow">
-<div class="w-16 h-16 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-2xl shadow-inner mb-4 relative">
-T
-<div class="absolute -bottom-1 -right-1 bg-surface rounded-full p-0.5">
-<span class="material-symbols-outlined text-[16px] text-tertiary bg-surface rounded-full" data-icon="verified">verified</span>
-</div>
-</div>
-<h4 class="font-title-lg text-title-lg text-on-surface font-bold mb-1">TechHaven</h4>
-<p class="text-sm text-on-surface-variant font-label-md mb-4">Electronics • 4.9 Rating</p>
-<div class="flex gap-2 mb-4">
-<div class="w-12 h-12 bg-surface-container-low rounded bg-cover bg-center border border-surface-variant" data-alt="A close-up of a sleek new smartphone camera lens, high quality, studio lighting, representing premium electronics." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCUx_mJ5P6wmUgJSWbGxs6IFWcjotnUEUkT-VHu91jbLd9s2VRRCm8qIcEaF0bQgNzxM2hv5TIJVvHuNGH__nJARR29ri_J6NiJJ7-nt7nLGtb0wFqe3oscTfVQs_xsmdLT6o-GziJT66MX1jA8__PyJS7woUcaNeWJpGPlrxtILS3qppV2AQVZo9UdmMnR6zctEz246wkMrk8ctoRiK9wojPLQxLOhLBkOWfSFEaNS4nrnvnGDVMlEGA')"></div>
-<div class="w-12 h-12 bg-surface-container-low rounded bg-cover bg-center border border-surface-variant" data-alt="A close-up of a premium smartwatch dial, high quality, studio lighting, representing premium electronics." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAONkj0yjZOybZJcOgl6Ji7nAJX1wao2t8HII4VU9Hy_1PNWMDpV_14AIyh_5KpxyP3DyPtBx71frVRmaKEq0SlejiVBPsAlCow0a8dP6vfRK41qsKpfpvbDb_-MLnk9SF1zKOBZY8B7X97TiPpeMt63B241c35bzhzcZWui0jc13yOLgFZgfFFfdmu1ieOM4nGFjQ8v1TKYe3cVFOY27UDD4FNO6IA6k93Qp7-BHj7F9c_SqtKo6aaZA')"></div>
-<div class="w-12 h-12 bg-surface-container-high rounded flex items-center justify-center text-xs font-bold text-on-surface-variant">+24</div>
-</div>
-<button class="w-full text-on-surface font-button text-button border border-outline-variant px-4 py-2 rounded-lg hover:bg-surface-variant transition-colors mt-auto">View Products</button>
-</div>
-</div>
-</section>
-<script>
-    // Micro-interaction for category chips
-    document.querySelectorAll('section:nth-of-type(2) button').forEach(button => {
-        button.addEventListener('click', function() {
-            // Reset all
-            document.querySelectorAll('section:nth-of-type(2) button').forEach(b => {
-                b.className = "whitespace-nowrap px-4 py-2 rounded-full bg-surface-container-high text-on-surface font-button text-button shadow-sm hover:bg-surface-container-highest transition-colors";
-            });
-            // Set active
-            this.className = "whitespace-nowrap px-4 py-2 rounded-full bg-primary text-on-primary font-button text-button shadow-sm hover:shadow-md transition-shadow";
-        });
-    });
-</script>
 {% endblock %}

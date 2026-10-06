@@ -1,0 +1,12 @@
+.vendor-wizard-panel {
+    animation: vendor-step-enter 360ms ease both;
+}
+
+@keyframes vendor-step-enter {
+    from { opacity: 0; transform: translateX(14px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vendor-wizard-panel { animation: none; }
+}
