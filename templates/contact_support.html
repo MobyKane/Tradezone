@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact / Complaints - TradeZone{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-2xl rounded-2xl border border-outline-variant bg-surface p-6 shadow-sm md:p-8">
+    <h1 class="text-2xl font-bold text-on-background">Contact / Complaints</h1>
+    <p class="mt-2 text-sm text-on-surface-variant">Tell us what happened. We’ll save your message and email you a reference number.</p>
+    <form method="post" class="mt-6 space-y-4" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div role="alert" class="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="absolute -left-[10000px]" aria-hidden="true">
+            <label for="id_website">Leave this field empty</label>
+            <input id="id_website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        <label class="block text-sm font-medium text-on-surface">Name
+            <input name="name" value="{{ form.name.value|default:'' }}" maxlength="150" required autocomplete="name" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5">
+            {% for error in form.name.errors %}<span class="mt-1 block text-sm text-red-700">{{ error }}</span>{% endfor %}
+        </label>
+        <label class="block text-sm font-medium text-on-surface">Email
+            <input name="email" type="email" value="{{ form.email.value|default:'' }}" maxlength="254" required autocomplete="email" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5">
+            {% for error in form.email.errors %}<span class="mt-1 block text-sm text-red-700">{{ error }}</span>{% endfor %}
+        </label>
+        <label class="block text-sm font-medium text-on-surface">Order number <span class="font-normal text-on-surface-variant">(optional)</span>
+            <input name="order_number" value="{{ form.order_number.value|default:'' }}" maxlength="64" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5">
+            {% for error in form.order_number.errors %}<span class="mt-1 block text-sm text-red-700">{{ error }}</span>{% endfor %}
+        </label>
+        <label class="block text-sm font-medium text-on-surface">Category
+            <select name="category" required class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5">
+                <option value="">Choose a category</option>
+                {% for value, label in form.fields.category.choices %}
+                {% if value %}<option value="{{ value }}" {% if form.category.value == value %}selected{% endif %}>{{ label }}</option>{% endif %}
+                {% endfor %}
+            </select>
+            {% for error in form.category.errors %}<span class="mt-1 block text-sm text-red-700">{{ error }}</span>{% endfor %}
+        </label>
+        <label class="block text-sm font-medium text-on-surface">Message
+            <textarea name="message" rows="6" maxlength="5000" required class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2.5">{{ form.message.value|default:'' }}</textarea>
+            {% for error in form.message.errors %}<span class="mt-1 block text-sm text-red-700">{{ error }}</span>{% endfor %}
+        </label>
+        <button type="submit" class="rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary">Send message</button>
+    </form>
+</section>
+{% endblock %}

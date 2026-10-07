@@ -3,6 +3,7 @@ from .models import (
     CategoryCommission,
     CategoryNode,
     CartItem,
+    Complaint,
     LedgerTransaction,
     Order,
     OrderItem,
@@ -49,6 +50,15 @@ class ProductReportAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
     search_fields = ('product__name', 'reporter__username', 'reason')
     list_editable = ('status',)
+
+
+@admin.register(Complaint)
+class ComplaintAdmin(admin.ModelAdmin):
+    list_display = ('reference', 'name', 'email', 'order_number', 'category', 'status', 'created_at')
+    list_filter = ('status', 'category', 'created_at')
+    search_fields = ('reference', 'email', 'order_number')
+    list_editable = ('status',)
+    readonly_fields = ('reference', 'created_at', 'client_ip')
 
 
 @admin.register(ProductViolation)

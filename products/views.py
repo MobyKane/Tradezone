@@ -9,13 +9,23 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.db.models import Q
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.utils import timezone
 from django.utils.text import slugify
 from django.core.exceptions import PermissionDenied
-from .models import CategoryNode, Product, CartItem, Order, OrderItem, ProductReport, ProductViolation, Payment, PaymentWebhookEvent, Payout, VendorOrder, VendorWallet, LedgerTransaction, VendorDispute
+import csv
+import hashlib
+import hmac
+import json
+import logging
+import uuid
+from decimal import Decimal
+
+from .models import CategoryNode, Product, CartItem, Order, OrderItem, ProductReport, Complaint, ProductViolation, Payment, PaymentWebhookEvent, Payout, VendorOrder, VendorWallet, LedgerTransaction, VendorDispute
 from vendors.models import Vendor, AccountProfile
-from .forms import BuyerSignupForm, ProductListingForm, RoleAuthenticationForm, RoleSignupForm, VendorStoreSettingsForm
+from .forms import BuyerSignupForm, ComplaintForm, ProductListingForm, RoleAuthenticationForm, RoleSignupForm, VendorStoreSettingsForm
 from . import gateways
 from .money import (
     complete_payout,
@@ -28,17 +38,113 @@ from .money import (
     snapshot_order_item,
 )
 from .fashion_classifier import classify_fashion_section
-import hashlib
-import hmac
-import json
-import uuid
-import csv
-from decimal import Decimal
 
 SUBCATEGORY_CHOICES = tuple(
     choice for choice in Product.CATEGORY_CHOICES
     if choice[0] not in {'Automotive', 'Toys & Games'}
 )
+
+logger = logging.getLogger(__name__)
+COMPLAINT_RATE_LIMIT = 3
+COMPLAINT_RATE_WINDOW_SECONDS = 60 * 60
+
+
+def _request_client_ip(request):
+    return request.META.get('REMOTE_ADDR') or None
+
+
+def _complaint_rate_limit_allows(request):
+    client_ip = _request_client_ip(request) or 'unknown'
+    key_digest = hashlib.sha256(client_ip.encode('utf-8')).hexdigest()
+    cache_key = f'complaint-rate:{key_digest}'
+    if cache.add(cache_key, 1, timeout=COMPLAINT_RATE_WINDOW_SECONDS):
+        return True
+    try:
+        return cache.incr(cache_key) <= COMPLAINT_RATE_LIMIT
+    except ValueError:
+        return cache.add(cache_key, 1, timeout=COMPLAINT_RATE_WINDOW_SECONDS)
+
+
+def _send_complaint_emails(complaint):
+    complaint_body = (
+        f'Reference: {complaint.reference}\n'
+        f'Name: {complaint.name}\n'
+        f'Email: {complaint.email}\n'
+        f'Order number: {complaint.order_number or "Not provided"}\n'
+        f'Category: {complaint.get_category_display()}\n'
+        f'Status: {complaint.get_status_display()}\n\n'
+        f'{complaint.message}'
+    )
+    if settings.COMPLAINTS_EMAIL:
+        try:
+            sent = send_mail(
+                f'[{complaint.reference}] {complaint.get_category_display()}',
+                complaint_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.COMPLAINTS_EMAIL],
+                fail_silently=False,
+            )
+            if not sent:
+                logger.error('Complaint notification email was not sent for %s.', complaint.reference)
+        except Exception:
+            logger.exception('Failed to send support notification for complaint %s.', complaint.reference)
+    else:
+        logger.error(
+            'COMPLAINTS_EMAIL is not configured; complaint %s was saved without staff notification.',
+            complaint.reference,
+        )
+
+    try:
+        sent = send_mail(
+            f'TradeZone support received your message ({complaint.reference})',
+            (
+                f'Hello {complaint.name},\n\n'
+                f'We received your message and recorded it as {complaint.reference}. '
+                'Our support team will review it.\n\n'
+                f'Reference: {complaint.reference}\n'
+                'TradeZone Support'
+            ),
+            settings.DEFAULT_FROM_EMAIL,
+            [complaint.email],
+            fail_silently=False,
+        )
+        if not sent:
+            logger.error('Complaint acknowledgement email was not sent for %s.', complaint.reference)
+    except Exception:
+        logger.exception('Failed to send acknowledgement for complaint %s.', complaint.reference)
+
+
+def _create_complaint(
+    *,
+    name,
+    email,
+    category,
+    message,
+    order_number='',
+    user=None,
+    client_ip=None,
+    product_report=None,
+):
+    values = {
+        'name': name,
+        'email': email,
+        'category': category,
+        'message': message,
+        'order_number': str(order_number or ''),
+        'user': user,
+        'client_ip': client_ip,
+    }
+    if product_report is None:
+        complaint = Complaint.objects.create(**values)
+        created = True
+    else:
+        complaint, created = Complaint.objects.get_or_create(
+            product_report=product_report,
+            defaults=values,
+        )
+    if created:
+        _send_complaint_emails(complaint)
+    return complaint
 
 
 def _user_can_sell(user):
@@ -183,6 +289,35 @@ def home_view(request):
         'buyer_tour_autostart': buyer_tour_autostart,
         'onboarding_content_visible': onboarding_content_visible,
     })
+
+
+def contact_support_view(request):
+    initial = {}
+    if request.user.is_authenticated:
+        initial = {
+            'name': request.user.get_full_name() or request.user.get_username(),
+            'email': request.user.email,
+        }
+    form = ComplaintForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        if form.cleaned_data['website']:
+            form.add_error(None, 'We could not submit your message. Please try again.')
+            return render(request, 'contact_support.html', {'form': form}, status=400)
+        if not _complaint_rate_limit_allows(request):
+            form.add_error(None, 'Too many messages have been sent from this network. Please try again later.')
+            return render(request, 'contact_support.html', {'form': form}, status=429)
+
+        complaint = _create_complaint(
+            name=form.cleaned_data['name'].strip(),
+            email=form.cleaned_data['email'].strip(),
+            order_number=form.cleaned_data['order_number'],
+            category=form.cleaned_data['category'],
+            message=form.cleaned_data['message'],
+            user=request.user if request.user.is_authenticated else None,
+            client_ip=_request_client_ip(request),
+        )
+        return render(request, 'complaint_confirmation.html', {'complaint': complaint})
+    return render(request, 'contact_support.html', {'form': form})
 
 
 def subcategory_view(request, category_slug):
@@ -1032,6 +1167,15 @@ def report_order_issue_view(request, order_id):
             )
             vendor_order.has_open_dispute = True
             vendor_order.save(update_fields=('has_open_dispute',))
+    _create_complaint(
+        name=order.full_name,
+        email=order.email,
+        category=Complaint.ORDER_ISSUE,
+        message=reason,
+        order_number=order.pk,
+        user=request.user,
+        client_ip=_request_client_ip(request),
+    )
     messages.success(request, f'Your issue for order #{order.pk} has been sent for review.')
     return redirect('profile')
 
@@ -1053,10 +1197,19 @@ def report_product_view(request, id):
     if not reason:
         messages.error(request, 'Please describe why this product is in the wrong category.')
         return redirect('product_detail', id=id)
-    _, created = ProductReport.objects.get_or_create(
+    report, created = ProductReport.objects.get_or_create(
         product=product,
         reporter=request.user,
         defaults={'reason': reason},
+    )
+    _create_complaint(
+        name=request.user.get_full_name() or request.user.get_username(),
+        email=request.user.email or settings.DEFAULT_FROM_EMAIL,
+        category=Complaint.SELLER_COMPLAINT,
+        message=f'Wrong category report for product "{product.name}" (#{product.pk}): {reason}',
+        user=request.user,
+        client_ip=_request_client_ip(request),
+        product_report=report,
     )
     if created and product.reports.count() >= 3 and not product.flagged_for_review:
         product.flagged_for_review = True

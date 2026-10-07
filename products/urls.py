@@ -26,6 +26,7 @@ urlpatterns = [
     path('admin/payouts/<int:payout_id>/', views.payout_approval_view, name='payout_approval'),
     path('staff/finance/', views.finance_dashboard_view, name='finance_dashboard'),
     path('profile/', views.profile_view, name='profile'),
+    path('contact/', views.contact_support_view, name='contact_support'),
     path('orders/<int:order_id>/report-issue/', views.report_order_issue_view, name='report_order_issue'),
     path('login/', views.login_view, name='login'),
     path('signup/', views.signup_view, name='signup'),

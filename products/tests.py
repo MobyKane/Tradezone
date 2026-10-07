@@ -4,6 +4,8 @@ import json
 import re
 from decimal import Decimal
 
+from django.core import mail
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from io import StringIO
 
@@ -19,6 +21,7 @@ from products.models import (
     CategoryCommission,
     CategoryNode,
     CartItem,
+    Complaint,
     LedgerTransaction,
     Order,
     OrderItem,
@@ -233,6 +236,11 @@ class NavigationAndAuthTests(TestCase):
         self.assertNotContains(response, 'id="buyer-tour"')
         self.assertNotContains(response, 'id="buyer-tour-prompt"')
 
+    @override_settings(
+        EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+        COMPLAINTS_EMAIL='support@example.test',
+        DEFAULT_FROM_EMAIL='noreply@example.test',
+    )
     def test_buyer_can_report_order_issue_from_profile_history(self):
         buyer = get_user_model().objects.create_user(username='order_issue_buyer', password='Test123!')
         vendor_user = get_user_model().objects.create_user(username='order_issue_vendor', password='Test123!')
@@ -255,8 +263,141 @@ class NavigationAndAuthTests(TestCase):
         issue = VendorDispute.objects.get(vendor_order=vendor_order)
         self.assertEqual(issue.opened_by, buyer)
         self.assertEqual(issue.reason, 'The parcel arrived damaged.')
+        complaint = Complaint.objects.get(order_number=str(order.pk))
+        self.assertEqual(complaint.category, Complaint.ORDER_ISSUE)
+        self.assertEqual(complaint.email, order.email)
+        self.assertEqual(len(mail.outbox), 2)
         vendor_order.refresh_from_db()
         self.assertTrue(vendor_order.has_open_dispute)
+
+
+@override_settings(
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+    COMPLAINTS_EMAIL='support@example.test',
+    DEFAULT_FROM_EMAIL='noreply@example.test',
+)
+class ComplaintFlowTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        mail.outbox = []
+        self.url = reverse('contact_support')
+        self.payload = {
+            'name': 'Amina Buyer',
+            'email': 'amina@example.test',
+            'order_number': 'TZ-123',
+            'category': Complaint.PAYMENT,
+            'message': 'My Paystack payment is not showing.',
+            'website': '',
+        }
+
+    def test_valid_guest_complaint_is_saved_and_sends_both_emails(self):
+        response = self.client.post(self.url, self.payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'complaint_confirmation.html')
+        complaint = Complaint.objects.get()
+        self.assertEqual(complaint.name, self.payload['name'])
+        self.assertEqual(complaint.email, self.payload['email'])
+        self.assertEqual(complaint.order_number, self.payload['order_number'])
+        self.assertEqual(complaint.category, Complaint.PAYMENT)
+        self.assertEqual(complaint.status, Complaint.NEW)
+        self.assertEqual(complaint.reference, response.context['complaint'].reference)
+        self.assertTrue(complaint.reference.startswith('TZC-'))
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(mail.outbox[0].to, ['support@example.test'])
+        self.assertIn(complaint.reference, mail.outbox[0].subject)
+        self.assertEqual(mail.outbox[1].to, [self.payload['email']])
+        self.assertIn(complaint.reference, mail.outbox[1].body)
+
+    def test_invalid_complaint_is_rejected_without_saving_or_email(self):
+        response = self.client.post(self.url, {
+            **self.payload,
+            'email': 'not-an-email',
+            'category': 'not-a-category',
+            'message': '',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'contact_support.html')
+        self.assertEqual(Complaint.objects.count(), 0)
+        self.assertEqual(mail.outbox, [])
+        self.assertContains(response, 'Enter a valid email address.')
+        self.assertContains(response, 'Select a valid choice.')
+
+    def test_honeypot_blocks_bots_without_saving_or_sending(self):
+        response = self.client.post(self.url, {**self.payload, 'website': 'spam.example'})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Complaint.objects.count(), 0)
+        self.assertEqual(mail.outbox, [])
+
+    def test_complaint_rate_limit_is_per_ip(self):
+        for _ in range(3):
+            response = self.client.post(self.url, self.payload)
+            self.assertEqual(response.status_code, 200)
+            self.assertTemplateUsed(response, 'complaint_confirmation.html')
+
+        response = self.client.post(self.url, self.payload)
+
+        self.assertEqual(response.status_code, 429)
+        other_ip_client = Client()
+        other_ip_response = other_ip_client.post(
+            self.url,
+            self.payload,
+            REMOTE_ADDR='203.0.113.11',
+        )
+        self.assertEqual(other_ip_response.status_code, 200)
+        self.assertEqual(Complaint.objects.count(), 4)
+        self.assertEqual(len(mail.outbox), 8)
+
+    def test_staff_can_review_and_update_complaint_status_in_admin(self):
+        staff = get_user_model().objects.create_superuser(
+            username='complaint_admin',
+            email='admin@example.test',
+            password='Test123!',
+        )
+        complaint = Complaint.objects.create(
+            name='Amina Buyer',
+            email='amina@example.test',
+            category=Complaint.OTHER,
+            message='Please help.',
+        )
+        self.client.force_login(staff)
+        url = reverse('admin:products_complaint_change', args=(complaint.pk,))
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="status"')
+        response = self.client.post(url, {
+            'name': complaint.name,
+            'email': complaint.email,
+            'order_number': '',
+            'category': Complaint.OTHER,
+            'message': complaint.message,
+            'status': Complaint.IN_PROGRESS,
+            '_save': 'Save',
+        })
+        self.assertEqual(response.status_code, 302)
+        complaint.refresh_from_db()
+        self.assertEqual(complaint.status, Complaint.IN_PROGRESS)
+
+    def test_email_failures_do_not_lose_complaint_or_hide_confirmation(self):
+        with patch('products.views.send_mail', side_effect=OSError('SMTP unavailable')) as send:
+            with self.assertLogs('products.views', level='ERROR'):
+                response = self.client.post(self.url, self.payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'complaint_confirmation.html')
+        self.assertEqual(Complaint.objects.count(), 1)
+        self.assertEqual(send.call_count, 2)
+        self.assertContains(response, Complaint.objects.get().reference)
+
+    def test_contact_link_is_available_to_guests(self):
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'href="{self.url}"')
 
     def test_guest_user_can_only_sell_twice_before_signup(self):
         payload = {
@@ -654,6 +795,11 @@ class FashionWorkflowTests(TestCase):
         self.assertNotContains(response, 'Men pending')
         self.assertNotContains(response, 'Women approved')
 
+    @override_settings(
+        EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+        COMPLAINTS_EMAIL='support@example.test',
+        DEFAULT_FROM_EMAIL='noreply@example.test',
+    )
     def test_three_distinct_customer_reports_flag_product_and_duplicate_is_idempotent(self):
         product = self.make_fashion_product('Reportable item', self.men)
         for number in range(3):
@@ -666,6 +812,8 @@ class FashionWorkflowTests(TestCase):
 
         product.refresh_from_db()
         self.assertEqual(product.reports.count(), 3)
+        self.assertEqual(Complaint.objects.filter(category=Complaint.SELLER_COMPLAINT).count(), 3)
+        self.assertEqual(len(mail.outbox), 6)
         self.assertTrue(product.flagged_for_review)
 
     def test_home_and_fashion_detail_hide_pending_products(self):

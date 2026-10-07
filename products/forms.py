@@ -6,7 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.utils.text import slugify
 
 from vendors.models import AccountProfile, Vendor
-from .models import CategoryNode, Product
+from .models import CategoryNode, Complaint, Product
 
 
 ROLE_CHOICES = AccountProfile.ROLE_CHOICES
@@ -141,6 +141,24 @@ class ProductListingForm(forms.Form):
         elif section:
             self.add_error('section', 'A section may only be selected for Fashion or Building Materials products.')
         return cleaned_data
+
+
+class ComplaintForm(forms.Form):
+    name = forms.CharField(max_length=150)
+    email = forms.EmailField(max_length=254)
+    order_number = forms.CharField(max_length=64, required=False)
+    category = forms.ChoiceField(choices=Complaint.CATEGORY_CHOICES)
+    message = forms.CharField(max_length=5000, widget=forms.Textarea)
+    website = forms.CharField(required=False, max_length=200)
+
+    def clean_order_number(self):
+        return self.cleaned_data['order_number'].strip()
+
+    def clean_message(self):
+        message = self.cleaned_data['message'].strip()
+        if not message:
+            raise ValidationError('Enter a message describing how we can help.')
+        return message
 
 
 class VendorStoreSettingsForm(forms.ModelForm):

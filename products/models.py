@@ -197,6 +197,58 @@ class ProductReport(models.Model):
         return f'Report for {self.product} by {self.reporter}'
 
 
+def complaint_reference():
+    import uuid
+
+    return f'TZC-{uuid.uuid4().hex.upper()}'
+
+
+class Complaint(models.Model):
+    ORDER_ISSUE = 'order_issue'
+    PAYMENT = 'payment'
+    SELLER_COMPLAINT = 'seller_complaint'
+    OTHER = 'other'
+    CATEGORY_CHOICES = (
+        (ORDER_ISSUE, 'Order issue'),
+        (PAYMENT, 'Payment'),
+        (SELLER_COMPLAINT, 'Seller complaint'),
+        (OTHER, 'Other'),
+    )
+
+    NEW = 'new'
+    IN_PROGRESS = 'in_progress'
+    RESOLVED = 'resolved'
+    STATUS_CHOICES = (
+        (NEW, 'New'),
+        (IN_PROGRESS, 'In progress'),
+        (RESOLVED, 'Resolved'),
+    )
+
+    reference = models.CharField(max_length=36, unique=True, default=complaint_reference)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='complaints')
+    name = models.CharField(max_length=150)
+    email = models.EmailField()
+    order_number = models.CharField(max_length=64, blank=True)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    message = models.TextField(max_length=5000)
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default=NEW)
+    client_ip = models.GenericIPAddressField(null=True, blank=True)
+    product_report = models.OneToOneField(
+        ProductReport,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='complaint',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-created_at',)
+
+    def __str__(self):
+        return f'{self.reference} ({self.get_status_display()})'
+
+
 class ProductViolation(models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='violations')
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='violations')
