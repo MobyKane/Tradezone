@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Vendor
+from .models import AccountProfile, Vendor
 
 class VendorAdmin(admin.ModelAdmin):
     list_display = ('business_name', 'user', 'fashion_audience', 'fashion_trusted', 'is_suspended')
@@ -16,3 +16,11 @@ class VendorAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 admin.site.register(Vendor, VendorAdmin)
+
+
+@admin.register(AccountProfile)
+class AccountProfileAdmin(admin.ModelAdmin):
+    fields = ('user', 'role', 'vendor_terms_accepted_at', 'onboarding_completed_at')
+    list_display = ('user', 'role', 'onboarding_completed_at')
+    list_filter = ('role',)
+    search_fields = ('user__username', 'user__email')

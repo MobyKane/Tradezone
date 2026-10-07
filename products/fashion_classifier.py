@@ -6,7 +6,7 @@ MEN_TERMS = (
     'kaftan', 'dashiki', 'fila cap', 'native wear for men', 'men shoes',
 )
 WOMEN_TERMS = (
-    'women', "women's", 'womens', 'female', 'woman', 'girl', 'girls', 'bubu',
+    'women', "women's", 'womens', 'female', 'woman', 'lady', 'ladies', 'girl', 'girls', 'bubu',
     'iro and buba', 'gele', 'aso ebi', 'wrapper', 'blouse', 'women shoes',
 )
 UNISEX_TERMS = (

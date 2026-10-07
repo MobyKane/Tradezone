@@ -121,7 +121,44 @@ def _get_cart_items(request):
 def home_view(request):
     query = request.GET.get('q', '')
     category = request.GET.get('category', '')
-    
+    buyer_tour_enabled = (
+        request.COOKIES.get('tradezone_buyer_tour') != 'done'
+        if not request.user.is_authenticated else False
+    )
+    buyer_tour_prompt = buyer_tour_enabled if not request.user.is_authenticated else False
+    buyer_tour_autostart = False
+    onboarding_content_visible = not request.user.is_authenticated
+
+    if request.user.is_authenticated and not request.user.is_staff:
+        profile, _ = AccountProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'role': AccountProfile.SELLER if hasattr(request.user, 'vendor_profile') else AccountProfile.BUYER,
+            },
+        )
+        first_buyer_render = (
+            profile.role == AccountProfile.BUYER
+            and profile.onboarding_completed_at is None
+        )
+        if first_buyer_render:
+            profile.onboarding_completed_at = timezone.now()
+            profile.save(update_fields=('onboarding_completed_at',))
+            buyer_tour_enabled = True
+            buyer_tour_prompt = True
+            buyer_tour_autostart = bool(request.session.pop('buyer_tour_autostart', False))
+            onboarding_content_visible = True
+        else:
+            if 'tour' in request.GET:
+                params = request.GET.copy()
+                params.pop('tour', None)
+                target = request.path
+                if params:
+                    target = f'{target}?{params.urlencode()}'
+                return redirect(target)
+            if profile.role == AccountProfile.SELLER:
+                vendor = Vendor.objects.filter(user=request.user).only('onboarding_complete').first()
+                onboarding_content_visible = not (vendor and vendor.onboarding_complete)
+
     products = Product.objects.filter(
         is_active=True,
         moderation_status=Product.APPROVED,
@@ -140,7 +177,11 @@ def home_view(request):
         'products': products,
         'query': query,
         'selected_category': category,
-        'vendors': vendors
+        'vendors': vendors,
+        'buyer_tour_enabled': buyer_tour_enabled,
+        'buyer_tour_prompt': buyer_tour_prompt,
+        'buyer_tour_autostart': buyer_tour_autostart,
+        'onboarding_content_visible': onboarding_content_visible,
     })
 
 

@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from io import StringIO
 
 from django.core.management import call_command
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 
@@ -89,13 +89,102 @@ class NavigationAndAuthTests(TestCase):
             'email': 'newbuyer@example.test',
             'password': 'Market!Ready2026',
         })
-        self.assertRedirects(response, reverse('home'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], reverse('home'))
         user = get_user_model().objects.get(email='newbuyer@example.test')
         self.assertEqual(user.account_profile.role, AccountProfile.BUYER)
         self.assertIsNone(user.account_profile.onboarding_completed_at)
         self.assertTrue(self.client.session['buyer_tour_autostart'])
         home_response = self.client.get(reverse('home'))
         self.assertContains(home_response, 'data-autostart="true"')
+        user.account_profile.refresh_from_db()
+        self.assertIsNotNone(user.account_profile.onboarding_completed_at)
+
+    def test_buyer_first_home_render_sets_completion_and_shows_tour(self):
+        user = get_user_model().objects.create_user(username='first_render_buyer', password='Test123!')
+        profile = AccountProfile.objects.create(user=user, role=AccountProfile.BUYER)
+        self.client.force_login(user)
+        session = self.client.session
+        session['buyer_tour_autostart'] = True
+        session.save()
+
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        profile.refresh_from_db()
+        self.assertIsNotNone(profile.onboarding_completed_at)
+        self.assertContains(response, 'id="buyer-tour-prompt"')
+        self.assertContains(response, 'id="buyer-tour"')
+        self.assertContains(response, 'data-autostart="true"')
+
+    def test_buyer_refresh_hides_all_onboarding_content_after_first_render(self):
+        user = get_user_model().objects.create_user(username='refresh_buyer', password='Test123!')
+        AccountProfile.objects.create(user=user, role=AccountProfile.BUYER)
+        self.client.force_login(user)
+        self.client.get(reverse('home'))
+
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Quick onboarding')
+        self.assertNotContains(response, 'Take a quick tour')
+        self.assertNotContains(response, 'id="buyer-tour"')
+        self.assertNotContains(response, 'buyer-tour.js')
+
+    def test_buyer_login_after_logout_or_new_device_does_not_repeat_onboarding(self):
+        user = get_user_model().objects.create_user(
+            username='relogin_buyer',
+            password='Test123!',
+        )
+        profile = AccountProfile.objects.create(user=user, role=AccountProfile.BUYER)
+        self.client.force_login(user)
+        self.client.get(reverse('home'))
+        profile.refresh_from_db()
+        completed_at = profile.onboarding_completed_at
+
+        self.client.logout()
+        response = self.client.post(reverse('login'), {
+            'username': user.username,
+            'password': 'Test123!',
+            'role': AccountProfile.BUYER,
+        })
+        self.assertRedirects(response, reverse('home'))
+        response = self.client.get(reverse('home'))
+
+        profile.refresh_from_db()
+        self.assertEqual(profile.onboarding_completed_at, completed_at)
+        self.assertNotContains(response, 'Quick onboarding')
+        self.assertNotContains(response, 'Take a quick tour')
+        self.assertNotContains(response, 'id="buyer-tour"')
+
+        new_device = Client()
+        response = new_device.post(reverse('login'), {
+            'username': user.username,
+            'password': 'Test123!',
+            'role': AccountProfile.BUYER,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], reverse('home'))
+        response = new_device.get(reverse('home'))
+        self.assertNotContains(response, 'Quick onboarding')
+        self.assertNotContains(response, 'Take a quick tour')
+        self.assertNotContains(response, 'id="buyer-tour"')
+
+    def test_existing_buyer_sees_no_onboarding_content(self):
+        user = get_user_model().objects.create_user(username='existing_buyer', password='Test123!')
+        AccountProfile.objects.create(
+            user=user,
+            role=AccountProfile.BUYER,
+            onboarding_completed_at=timezone.now(),
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('home'))
+
+        self.assertNotContains(response, 'Quick onboarding')
+        self.assertNotContains(response, 'Take a quick tour')
+        self.assertNotContains(response, 'id="buyer-tour"')
+        self.assertNotContains(response, 'buyer-tour.js')
 
     def test_guest_tour_prompt_and_empty_home_render_without_gateway_calls(self):
         with patch('products.views.gateways.initialize_paystack_payment') as initialize, \
@@ -122,11 +211,11 @@ class NavigationAndAuthTests(TestCase):
         )
         self.client.force_login(user)
         response = self.client.get(reverse('home'))
-        self.assertContains(response, 'data-autostart="false"')
+        self.assertNotContains(response, 'id="buyer-tour"')
         self.assertNotContains(response, 'id="buyer-tour-prompt"')
-        self.assertNotContains(response, 'Take a tour')
+        self.assertNotContains(response, 'Quick onboarding')
         replay = self.client.get(reverse('home') + '?tour=1')
-        self.assertContains(replay, 'data-autostart="false"')
+        self.assertRedirects(replay, reverse('home'))
 
     def test_tour_skip_endpoint_persists_completion_for_buyer(self):
         user = get_user_model().objects.create_user(username='tour_skip_buyer', password='Test123!')
@@ -141,7 +230,7 @@ class NavigationAndAuthTests(TestCase):
         user.account_profile.refresh_from_db()
         self.assertEqual(user.account_profile.onboarding_completed_at, completed_at)
         response = self.client.get(reverse('home'))
-        self.assertContains(response, 'data-autostart="false"')
+        self.assertNotContains(response, 'id="buyer-tour"')
         self.assertNotContains(response, 'id="buyer-tour-prompt"')
 
     def test_buyer_can_report_order_issue_from_profile_history(self):
@@ -427,6 +516,52 @@ class FashionWorkflowTests(TestCase):
         self.assertEqual(classify_fashion_section('Unisex kaftan')[0], 'unisex')
         self.assertEqual(classify_fashion_section('Womenology gadget')[0], 'unisex')
         self.assertEqual(classify_fashion_section('Mens kaftan and women gele')[0], 'unisex')
+
+    def test_classifier_assigns_mens_senator_wear_to_men(self):
+        self.assertEqual(classify_fashion_section("Men's Senator Wear")[0], 'men')
+
+    def test_classifier_assigns_ladies_maxi_dress_to_women(self):
+        self.assertEqual(classify_fashion_section('Ladies Maxi Dress')[0], 'women')
+
+    def test_classifier_assigns_cotton_top_to_unisex_without_signals(self):
+        result = classify_fashion_section('Cotton Top')
+        self.assertEqual(result[0], 'unisex')
+        self.assertIn('No gender-specific Fashion terms matched', result[1])
+
+    def test_classifier_assigns_explicit_unisex_hoodie_to_unisex(self):
+        self.assertEqual(classify_fashion_section('Unisex Hoodie')[0], 'unisex')
+
+    def test_classifier_assigns_mixed_men_and_women_sneakers_to_unisex(self):
+        self.assertEqual(classify_fashion_section('Men and Women Sneakers')[0], 'unisex')
+
+    def test_classifier_assigns_agbada_and_gele_set_to_unisex(self):
+        self.assertEqual(classify_fashion_section('Agbada and Gele Set')[0], 'unisex')
+
+    def test_fashion_listing_saves_the_automatic_classifier_section(self):
+        self.client.force_login(self.seller)
+        expected_sections = {
+            "Men's Senator Wear": self.men,
+            'Ladies Maxi Dress': self.women,
+            'Cotton Top': self.unisex,
+            'Unisex Hoodie': self.unisex,
+            'Men and Women Sneakers': self.unisex,
+            'Agbada and Gele Set': self.unisex,
+        }
+
+        for title, expected_section in expected_sections.items():
+            with self.subTest(title=title):
+                response = self.client.post(reverse('list_item'), {
+                    'name': title,
+                    'description': 'Fashion listing',
+                    'price': '25.00',
+                    'stock': '4',
+                    'category': 'Fashion',
+                })
+                product = Product.objects.get(name=title)
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(product.section, expected_section)
+                self.assertEqual(product.auto_section, expected_section)
+                self.assertFalse(product.classification_overridden)
 
     def test_seller_override_is_saved_and_requires_staff_review(self):
         self.client.force_login(self.seller)

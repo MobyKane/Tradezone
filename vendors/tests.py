@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import call, patch
 from importlib import import_module
 from unittest.mock import Mock
 
@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.test import TestCase
 from django.core.cache import cache
+from django.utils import timezone
 
 from .models import AccountProfile, Vendor
 from products import gateways
@@ -23,20 +24,42 @@ class VendorOnboardingTests(TestCase):
 		self.client.force_login(self.user)
 		self.url = reverse('vendors:onboarding')
 
-	def test_completion_migration_preserves_legacy_completed_profiles(self):
-		migration = import_module('vendors.migrations.0007_accountprofile_onboarding_completed_at')
+	def test_existing_users_and_vendors_are_marked_complete_by_migration(self):
+		migration = import_module('vendors.migrations.0008_complete_existing_onboarding')
 		profiles = Mock()
+		vendors = Mock()
+		users = Mock()
+		profile_model = Mock(objects=profiles)
 		apps = Mock()
-		apps.get_model.return_value.objects = profiles
+		apps.get_model.side_effect = [
+			profile_model,
+			Mock(objects=vendors),
+			Mock(objects=users),
+		]
+		vendors.values_list.return_value = [10]
+		missing_user_ids = Mock()
+		missing_user_ids.iterator.return_value = iter([10, 11])
+		users.exclude.return_value.values_list.return_value = missing_user_ids
 
-		migration.preserve_completed_tours(apps, None)
-		profiles.filter.assert_called_once_with(tour_completed=True)
-		self.assertIsNotNone(profiles.filter.return_value.update.call_args.kwargs['onboarding_completed_at'])
+		migration.complete_existing_onboarding(apps, None)
 
-		profiles.reset_mock()
-		migration.restore_completed_tours(apps, None)
-		profiles.filter.assert_called_once_with(onboarding_completed_at__isnull=False)
-		profiles.filter.return_value.update.assert_called_once_with(tour_completed=True)
+		self.assertEqual(apps.get_model.call_args_list, [
+			call('vendors', 'AccountProfile'),
+			call('vendors', 'Vendor'),
+			call('auth', 'User'),
+		])
+		profiles.update.assert_called_once()
+		self.assertIsNotNone(profiles.update.call_args.kwargs['onboarding_completed_at'])
+		vendors.update.assert_called_once_with(onboarding_complete=True)
+		created_profiles = profile_model.call_args_list
+		self.assertEqual([(profile.kwargs['user_id'], profile.kwargs['role']) for profile in created_profiles], [
+			(10, 'seller'),
+			(11, 'buyer'),
+		])
+		self.assertTrue(all(
+			profile.kwargs['onboarding_completed_at'] is not None
+			for profile in created_profiles
+		))
 
 	def test_wizard_saves_each_server_step_and_resolves_bank_before_submit(self):
 		response = self.client.get(self.url)
@@ -151,6 +174,65 @@ class VendorOnboardingTests(TestCase):
 		self.assertRedirects(response, self.url)
 		vendor.refresh_from_db()
 		self.assertEqual(vendor.onboarding_step, 3)
+		response = self.client.get(self.url)
+		self.assertContains(response, 'Step 3 of 5')
+
+	def test_submitted_vendor_cannot_reopen_wizard_or_see_its_steps(self):
+		vendor = Vendor.objects.create(
+			user=self.user,
+			business_name='Submitted Store',
+			onboarding_step=5,
+			paystack_recipient_code='RCP_READY',
+			vendor_terms_accepted_at=timezone.now(),
+		)
+
+		response = self.client.post(self.url, {'action': 'submit'})
+
+		self.assertRedirects(response, reverse('vendor_dashboard'))
+		vendor.refresh_from_db()
+		self.assertTrue(vendor.onboarding_complete)
+		self.user.account_profile.refresh_from_db()
+		self.assertIsNone(self.user.account_profile.onboarding_completed_at)
+
+		response = self.client.get(self.url, follow=True)
+		self.assertRedirects(response, reverse('vendor_dashboard'))
+		self.assertNotContains(response, 'Set up your vendor account')
+		self.assertNotContains(response, 'Step 5 of 5')
+		self.assertNotContains(response, 'Submit vendor profile')
+
+	def test_buyer_onboarding_flag_does_not_complete_vendor_wizard(self):
+		buyer = get_user_model().objects.create_user(
+			username='independent_buyer',
+			password='Test123!',
+		)
+		profile = AccountProfile.objects.create(user=buyer, role=AccountProfile.BUYER)
+		vendor = Vendor.objects.create(user=buyer, business_name='Independent Draft')
+		self.client.force_login(buyer)
+
+		response = self.client.get(reverse('home'))
+
+		self.assertEqual(response.status_code, 200)
+		profile.refresh_from_db()
+		vendor.refresh_from_db()
+		self.assertIsNotNone(profile.onboarding_completed_at)
+		self.assertFalse(vendor.onboarding_complete)
+
+	def test_account_profile_onboarding_timestamp_is_editable_in_admin(self):
+		admin_user = get_user_model().objects.create_superuser(
+			username='onboarding_admin',
+			email='admin@example.test',
+			password='Test123!',
+		)
+		profile = self.user.account_profile
+		self.client.force_login(admin_user)
+
+		response = self.client.get(reverse(
+			'admin:vendors_accountprofile_change',
+			args=(profile.pk,),
+		))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'name="onboarding_completed_at_0"')
 
 	def test_bank_list_uses_paystack_cache_and_fallback(self):
 		with patch('products.gateways.cache.set', wraps=cache.set) as cache_set, \

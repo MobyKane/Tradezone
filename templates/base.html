@@ -5,8 +5,10 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>{% block title %}TradeZone{% endblock %}</title>
+    {% if buyer_tour_enabled %}
     <link rel="stylesheet" href="{% static 'buyer-tour.css' %}?v=4"/>
     <script defer src="{% static 'buyer-tour.js' %}?v=4"></script>
+    {% endif %}
     {% block extra_head %}{% endblock %}
     <script>
         try {
@@ -120,6 +122,7 @@
     <main id="page-content" class="mx-auto max-w-[1440px] space-y-6 px-4 py-6 md:ml-16 md:px-16">
         {% block content %}{% endblock %}
     </main>
+    {% if buyer_tour_enabled %}
     <div id="buyer-tour" class="buyer-tour" hidden data-autostart="{{ buyer_tour_autostart|yesno:'true,false' }}" data-empty-catalog="{% if request.resolver_match.url_name == 'home' and not products %}true{% else %}false{% endif %}" data-complete-url="{% url 'buyer_tour_complete' %}" data-csrf="{{ csrf_token }}" aria-hidden="true">
         <form class="hidden" aria-hidden="true">{% csrf_token %}</form>
         <div class="buyer-tour__shade" data-tour-close></div>
@@ -134,6 +137,7 @@
                 <button type="button" class="buyer-tour__text-button" data-tour-back>Back</button>
                 <div class="flex gap-2"><button type="button" class="buyer-tour__text-button" data-tour-skip>Skip</button><button type="button" class="buyer-tour__next" data-tour-next>Start tour</button></div>
             </div>
+            {% endif %}
         </section>
     </div>
     <script>
