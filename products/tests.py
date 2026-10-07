@@ -512,6 +512,35 @@ class ComplaintFlowTests(TestCase):
         self.assertEqual(category_response.status_code, 200)
         self.assertContains(category_response, 'No products found')
 
+    def test_deployment_seed_command_is_repeatable_and_preserves_existing_values(self):
+        call_command('seed_deployment_data')
+        node_count = CategoryNode.objects.count()
+        commissions_count = CategoryCommission.objects.count()
+        settings = PlatformPaymentSettings.objects.get(pk=1)
+        settings.default_commission_bps = 1250
+        settings.save(update_fields=('default_commission_bps',))
+        commission = CategoryCommission.objects.get(category='Electronics')
+        commission.commission_bps = 1500
+        commission.save(update_fields=('commission_bps',))
+
+        call_command('seed_deployment_data')
+
+        self.assertEqual(CategoryNode.objects.count(), node_count)
+        self.assertEqual(CategoryCommission.objects.count(), commissions_count)
+        self.assertEqual(
+            set(CategoryCommission.objects.values_list('category', flat=True)),
+            {category for category, _ in Product.CATEGORY_CHOICES},
+        )
+        self.assertEqual(CategoryCommission.objects.get(category='Fashion').commission_bps, 1000)
+        self.assertEqual(
+            CategoryCommission.objects.get(category='Electronics').commission_bps,
+            1500,
+        )
+        self.assertEqual(
+            PlatformPaymentSettings.objects.get(pk=1).default_commission_bps,
+            1250,
+        )
+
     def test_building_materials_categories_and_listing_fields(self):
         root = CategoryNode.objects.get(parent__isnull=True, slug='building-materials')
         self.assertEqual(
